@@ -1,0 +1,13 @@
+.vs/
+.idea/
+.git/
+node_modules
+**/node_modules
+Docs/
+docs/
+samples/
+up/
+obj/
+bin/
+test/
+tests/

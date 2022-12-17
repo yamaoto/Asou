@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asou.Core", "Asou.Core\Asou.Core.csproj", "{217DE152-B18C-40B8-AA99-CA9AE2FA7A08}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asou.Core.Tests", "tests\Asou.Core.Tests\Asou.Core.Tests.csproj", "{5E206FE7-BE43-4816-A963-5FDDFE46FCFC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asou.Core.Benchmark", "Benchmarks\Asou.Core.Benchmark\Asou.Core.Benchmark.csproj", "{306EB2D7-782E-4D66-879C-FE85D0AD6EAB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{217DE152-B18C-40B8-AA99-CA9AE2FA7A08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{217DE152-B18C-40B8-AA99-CA9AE2FA7A08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{217DE152-B18C-40B8-AA99-CA9AE2FA7A08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{217DE152-B18C-40B8-AA99-CA9AE2FA7A08}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E206FE7-BE43-4816-A963-5FDDFE46FCFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E206FE7-BE43-4816-A963-5FDDFE46FCFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E206FE7-BE43-4816-A963-5FDDFE46FCFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E206FE7-BE43-4816-A963-5FDDFE46FCFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{306EB2D7-782E-4D66-879C-FE85D0AD6EAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{306EB2D7-782E-4D66-879C-FE85D0AD6EAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{306EB2D7-782E-4D66-879C-FE85D0AD6EAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{306EB2D7-782E-4D66-879C-FE85D0AD6EAB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
