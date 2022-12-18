@@ -1,4 +1,8 @@
+using Asou.Core.Abstractions.ExecutionElements;
 using Asou.Core.Benchmark.ProcessMachineAssets;
+using Asou.Core.Interpreter;
+using Asou.Core.Process;
+using Asou.Core.Process.Binding;
 using BenchmarkDotNet.Attributes;
 
 namespace Asou.Core.Benchmark;
@@ -19,10 +23,10 @@ public class ProcessMachineBenchmark
     [GlobalSetup]
     public void GlobalSetup()
     {
-        _processMachine = new ProcessMachine
+        _processMachine = new ProcessMachine(new ParameterBinder(new ParameterDelegateFactory()),
+            nameof(ProcessMachineBenchmark))
         {
-            ComponentFactory = (name, objectName) => CreateElement(name),
-            Name = nameof(ProcessMachineBenchmark)
+            ComponentFactory = (name, objectName) => CreateElement(name)
         };
         _byteCodeInterpreter = new ByteCodeInterpreter(false, BenchmarkHelper.GetTestCode(Count), _processMachine);
     }

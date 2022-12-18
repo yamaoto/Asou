@@ -1,13 +1,27 @@
-namespace Asou.Core;
+using System.Runtime.CompilerServices;
+using Asou.Core.Abstractions;
+using Asou.Core.Abstractions.ExecutionElements;
+using Asou.Core.Process.Binding;
+using Asou.Core.Process.Delegates;
 
-public class ProcessMachine
+namespace Asou.Core.Process;
+
+public class ProcessMachine : IProcessMachine
 {
-    public Dictionary<string, object> Components { get; init; } = new();
-    public Dictionary<string, object?> Parameters { get; init; } = new();
-    public Dictionary<string, Action> Procedures { get; init; } = new();
+    private readonly IParameterBinder _parameterBinder;
 
-    public required string Name { get; init; }
+    public ProcessMachine(IParameterBinder parameterBinder, string name)
+    {
+        _parameterBinder = parameterBinder;
+        Name = name;
+    }
+
+    public Dictionary<string, BaseElement> Components { get; } = new();
+    public Dictionary<string, object?> Parameters { get; } = new();
+    public Dictionary<string, Action> Procedures { get; } = new();
     public required ComponentFactoryMethod ComponentFactory { get; init; }
+
+    public string Name { get; init; }
 
     #region Commands
 
@@ -43,7 +57,7 @@ public class ProcessMachine
     {
         if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
 
-        var element = (BaseElement)Components[elementName];
+        var element = Components[elementName];
         await element.ExecuteAsync(cancellationToken);
     }
 
@@ -51,7 +65,7 @@ public class ProcessMachine
     {
         if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
 
-        var element = (IAfterExecute)Components[elementName];
+        var element = Unsafe.As<IAfterExecute>(Components[elementName]);
         await element.AfterExecuteAsync(cancellationToken);
     }
 
@@ -59,8 +73,20 @@ public class ProcessMachine
     {
         if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
 
-        var element = (IAsyncExecutionElement)Components[elementName];
+        var element = Unsafe.As<IAsyncExecutionElement>(Components[elementName]);
         await element.ConfigureAwaiterAsync(cancellationToken);
+    }
+
+    public void SetElementParameter<T>(string elementName, string parameterName, T value)
+    {
+        if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
+        _parameterBinder.SetParameter(Components[elementName], parameterName, value);
+    }
+
+    public T GetElementParameter<T>(string elementName, string parameterName)
+    {
+        if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
+        return _parameterBinder.GetParameter<T>(Components[elementName], parameterName);
     }
 
     #endregion

@@ -1,4 +1,9 @@
 using System.Diagnostics;
+using Asou.Core.Abstractions;
+using Asou.Core.Abstractions.ExecutionElements;
+using Asou.Core.Interpreter;
+using Asou.Core.Process;
+using Asou.Core.Process.Binding;
 using Xunit.Abstractions;
 
 namespace Asou.Core.Tests;
@@ -56,10 +61,9 @@ public class FormatTest
         var storage = new ByteCodeStorage();
         storage.Register(nameof(FormatTest), stream.GetBuffer());
         var test = new List<string>();
-        var processMachine = new ProcessMachine
+        var processMachine = new ProcessMachine(new ParameterBinder(new ParameterDelegateFactory()), nameof(FormatTest))
         {
-            ComponentFactory = (name, objectName) => CreateElement(name, test),
-            Name = nameof(FormatTest)
+            ComponentFactory = (name, objectName) => CreateElement(name, test)
         };
         var interpreter = new ByteCodeInterpreter(false, storage, processMachine);
 
@@ -71,7 +75,7 @@ public class FormatTest
         await interpreter.RunAsync(cancellationTokenSource.Token);
 
         stopWatch.Stop();
-        _testOutputHelper.WriteLine("Process elapsed {0} ms", stopWatch.ElapsedMilliseconds);
+        _testOutputHelper.WriteLine("Act elapsed {0} ms", stopWatch.ElapsedMilliseconds);
 
         // Assert
         Assert.True(processMachine.Components.ContainsKey("start"), "processMachine.Components.ContainsKey('start')");
@@ -109,6 +113,8 @@ public class FormatTest
             _test = test;
         }
 
+        public override string ClassName { get; init; } = nameof(Start);
+
         public override Task ExecuteAsync(CancellationToken cancellationToken)
         {
             _test.Add("start");
@@ -125,6 +131,9 @@ public class FormatTest
         {
             _test = test;
         }
+
+        public override string ClassName { get; init; } = nameof(DoWork1);
+
 
         public string? ParameterA { get; set; }
         public string? ParameterB { get; set; }
@@ -146,6 +155,9 @@ public class FormatTest
             _test = test;
         }
 
+        public override string ClassName { get; init; } = nameof(DoWork2);
+
+
         public string? ParameterA { get; set; }
         public string? ParameterB { get; set; }
 
@@ -165,6 +177,9 @@ public class FormatTest
         {
             _test = test;
         }
+
+        public override string ClassName { get; init; } = nameof(End);
+
 
         public override Task ExecuteAsync(CancellationToken cancellationToken)
         {

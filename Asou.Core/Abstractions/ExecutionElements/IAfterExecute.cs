@@ -1,4 +1,4 @@
-namespace Asou.Core;
+namespace Asou.Core.Abstractions.ExecutionElements;
 
 public interface IAfterExecute
 {

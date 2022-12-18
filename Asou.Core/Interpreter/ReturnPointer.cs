@@ -1,4 +1,4 @@
-namespace Asou.Core;
+namespace Asou.Core.Interpreter;
 
 public struct ReturnPointer
 {

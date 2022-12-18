@@ -1,9 +1,11 @@
-namespace Asou.Core;
+using Asou.Core.Process;
+
+namespace Asou.Core.Interpreter;
 
 public class ByteCodeInterpreter
 {
     private readonly bool _dryRun;
-    private readonly ProcessMachine _processMachine;
+    private readonly IProcessMachine _processMachine;
     private readonly ByteCodeFormatReader _reader;
 
     private readonly Dictionary<string, ScriptPointer> _scriptPositions = new();
@@ -19,7 +21,7 @@ public class ByteCodeInterpreter
     public ByteCodeInterpreter(
         bool dryRun,
         ByteCodeStorage storage,
-        ProcessMachine processMachine
+        IProcessMachine processMachine
     )
     {
         _reader = new ByteCodeFormatReader(storage.GetCodeForProcess(processMachine.Name));
@@ -80,7 +82,7 @@ public class ByteCodeInterpreter
                 var parameterType = _reader.ReadType();
                 var parameterValue = _reader.ReadValue(parameterType);
 #if DEBUG
-                WriteDebugCode(instruction, parameterName, parameterType, parameterValue);
+                WriteDebugCode(instruction, parameterName, parameterType, parameterValue!);
 #endif
                 if (_dryRun)
                     break;

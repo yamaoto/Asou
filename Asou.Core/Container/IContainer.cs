@@ -1,4 +1,6 @@
-namespace Asou.Core;
+using Asou.Core.Abstractions;
+
+namespace Asou.Core.Container;
 
 public interface IContainer
 {
