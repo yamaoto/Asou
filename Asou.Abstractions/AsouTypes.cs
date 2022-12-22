@@ -1,4 +1,4 @@
-namespace Asou.Core.Abstractions;
+namespace Asou.Abstractions;
 
 public enum AsouTypes : byte
 {

@@ -7,7 +7,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="HashDepot" Version="3.1.0"/>
+        <PackageReference Include="HashDepot" Version="3.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Abstractions" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Asou.Abstractions\Asou.Abstractions.csproj" />
+      <ProjectReference Include="..\Asou.ContextCall\Asou.ContextCall.csproj" />
     </ItemGroup>
 
 </Project>

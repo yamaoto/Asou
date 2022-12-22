@@ -1,3 +1,4 @@
+using Asou.Abstractions;
 using Asou.Core.Process;
 
 namespace Asou.Core.Interpreter;
@@ -5,7 +6,7 @@ namespace Asou.Core.Interpreter;
 public class ByteCodeInterpreter
 {
     private readonly bool _dryRun;
-    private readonly IProcessMachine _processMachine;
+    private readonly IProcessMachineCommands _processMachine;
     private readonly ByteCodeFormatReader _reader;
 
     private readonly Dictionary<string, ScriptPointer> _scriptPositions = new();
@@ -21,7 +22,7 @@ public class ByteCodeInterpreter
     public ByteCodeInterpreter(
         bool dryRun,
         ByteCodeStorage storage,
-        IProcessMachine processMachine
+        IProcessMachineCommands processMachine
     )
     {
         _reader = new ByteCodeFormatReader(storage.GetCodeForProcess(processMachine.Name));

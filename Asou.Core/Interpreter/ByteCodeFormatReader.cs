@@ -1,7 +1,7 @@
 using System.Buffers.Binary;
 using System.Text;
 using System.Text.Json;
-using Asou.Core.Abstractions;
+using Asou.Abstractions;
 using Asou.Core.Container;
 
 namespace Asou.Core.Interpreter;

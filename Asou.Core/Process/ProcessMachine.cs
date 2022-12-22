@@ -1,14 +1,17 @@
 using System.Runtime.CompilerServices;
-using Asou.Core.Abstractions;
-using Asou.Core.Abstractions.ExecutionElements;
+using Asou.Abstractions;
+using Asou.Abstractions.ExecutionElements;
 using Asou.Core.Process.Binding;
 using Asou.Core.Process.Delegates;
 
 namespace Asou.Core.Process;
 
-public class ProcessMachine : IProcessMachine
+public class ProcessMachine : IProcessMachineCommands
 {
     private readonly IParameterBinder _parameterBinder;
+    private readonly Dictionary<string, BaseElement> _components = new ();
+    private readonly Dictionary<string, object?> _parameters = new();
+    private readonly Dictionary<string, Action> _procedures = new();
 
     public ProcessMachine(IParameterBinder parameterBinder, string name)
     {
@@ -16,9 +19,10 @@ public class ProcessMachine : IProcessMachine
         Name = name;
     }
 
-    public Dictionary<string, BaseElement> Components { get; } = new();
-    public Dictionary<string, object?> Parameters { get; } = new();
-    public Dictionary<string, Action> Procedures { get; } = new();
+    public IReadOnlyDictionary<string, BaseElement> Components => _components;
+    public IReadOnlyDictionary<string, object?> Parameters => _parameters;
+    public IReadOnlyDictionary<string, Action> Procedures => _procedures;
+
     public required ComponentFactoryMethod ComponentFactory { get; init; }
 
     public string Name { get; init; }
@@ -28,22 +32,22 @@ public class ProcessMachine : IProcessMachine
     public void CreateComponent(string componentName, string name)
     {
         var component = ComponentFactory(componentName, componentName);
-        Components[componentName] = component;
+        _components[componentName] = component;
     }
 
     public void LetParameter(string parameterName)
     {
-        Parameters[parameterName] = new object();
+        _parameters[parameterName] = new object();
     }
 
     public void DeleteParameter(string parameterName)
     {
-        Parameters.Remove(parameterName);
+        _parameters.Remove(parameterName);
     }
 
     public void SetParameter(string parameterName, AsouTypes parameterType, object? parameterValue)
     {
-        Parameters[parameterName] = parameterValue;
+        _parameters[parameterName] = parameterValue;
     }
 
     public void CallProcedure(string procedureName)

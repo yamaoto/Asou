@@ -1,5 +1,5 @@
 using System.Text;
-using Asou.Core.Abstractions;
+using Asou.Abstractions;
 
 namespace Asou.Core.Interpreter;
 

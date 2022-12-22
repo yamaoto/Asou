@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
-using Asou.Core.Abstractions.ExecutionElements;
+using Asou.Abstractions.ExecutionElements;
 using Asou.Core.Process.Binding;
 
 namespace Asou.Core.Benchmark.ParameterBinderAssets;

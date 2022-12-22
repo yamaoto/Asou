@@ -1,4 +1,4 @@
-namespace Asou.Core.Abstractions.ExecutionElements;
+namespace Asou.Abstractions.ExecutionElements;
 
 public interface IAsyncExecutionElement
 {

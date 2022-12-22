@@ -1,10 +1,7 @@
-using Asou.Core.Abstractions;
+namespace Asou.Abstractions;
 
-namespace Asou.Core.Process;
-
-public interface IProcessMachine
+public interface IProcessMachineCommands : IProcessMachine
 {
-    string Name { get; init; }
     void CreateComponent(string componentName, string name);
     void LetParameter(string parameterName);
     void DeleteParameter(string parameterName);

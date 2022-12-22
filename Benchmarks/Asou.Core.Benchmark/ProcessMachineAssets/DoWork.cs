@@ -1,4 +1,4 @@
-using Asou.Core.Abstractions.ExecutionElements;
+using Asou.Abstractions.ExecutionElements;
 
 namespace Asou.Core.Benchmark.ProcessMachineAssets;
 
