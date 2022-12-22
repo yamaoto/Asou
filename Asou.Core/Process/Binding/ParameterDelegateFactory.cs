@@ -11,7 +11,7 @@ public class ParameterDelegateFactory : IParameterDelegateFactory
         var key = target.ClassName.GetHashCode() * 17 + parameterName.GetHashCode() * 17;
         if (!_delegates.TryGetValue(key, out var value)) CreateDelegates<TPropertyType>(target, parameterName);
 
-        return (Func<TPropertyType>)value.Item1;
+        return (Func<TPropertyType>)value!.Item1;
     }
 
     public Action<TPropertyType> GetSetParameterDelegate<TPropertyType>(BaseElement target, string parameterName)
@@ -19,7 +19,7 @@ public class ParameterDelegateFactory : IParameterDelegateFactory
         var key = target.ClassName.GetHashCode() * 17 + parameterName.GetHashCode() * 17;
         if (!_delegates.TryGetValue(key, out var value)) CreateDelegates<TPropertyType>(target, parameterName);
 
-        return (Action<TPropertyType>)value.Item2;
+        return (Action<TPropertyType>)value!.Item2;
     }
 
     public void CreateDelegates<TPropertyType>(BaseElement target, string parameterName)

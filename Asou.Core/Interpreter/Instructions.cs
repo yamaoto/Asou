@@ -4,32 +4,34 @@ public enum Instructions : byte
 {
     None = 0,
 
+    Nope = 1,
+
     /// <summary>
     ///     Components of system: processes, elements, connections, etc.
     ///     Arguments:
     ///     * component type: string
     ///     * component name: string
     /// </summary>
-    CreateComponent = 0x10,
+    CreateComponent,
 
     /// <summary>
     ///     Arguments:
     ///     * object type name: string
     ///     * object name: string
     /// </summary>
-    CreateObject = 0x11,
+    CreateObject,
 
     /// <summary>
     ///     Arguments:
     ///     * parameter name: string
     /// </summary>
-    LetParameter = 0x30,
+    LetParameter,
 
     /// <summary>
     ///     Arguments:
     ///     * parameter name: string
     /// </summary>
-    DeleteParameter = 0x31,
+    DeleteParameter,
 
     /// <summary>
     ///     Arguments:
@@ -37,50 +39,50 @@ public enum Instructions : byte
     ///     * argument type: string
     ///     * argument value: any
     /// </summary>
-    SetParameter = 0x32,
+    SetParameter,
 
     /// <summary>
     ///     Arguments:
     ///     * element name: string
     /// </summary>
-    CallProcedure = 0x50,
+    CallProcedure,
 
     /// <summary>
     ///     Arguments:
     ///     * element name: string
     /// </summary>
-    ExecuteElement = 0x51,
+    ExecuteElement,
 
     /// <summary>
     ///     Arguments:
     ///     * element name: string
     /// </summary>
-    AfterExecuteElement = 0x52,
+    AfterExecuteElement,
 
     /// <summary>
     ///     Arguments:
     ///     * element name: string
     /// </summary>
-    ConfigureAwaiter = 0x53,
+    ConfigureAwaiter,
 
     /// <summary>
     ///     Arguments:
     ///     * element name: string
     /// </summary>
-    ValidateEvent = 0x54,
+    ValidateEvent,
 
     /// <summary>
     ///     Arguments:
     ///     * element name: string
     /// </summary>
-    AfterAwaiter = 0x55,
+    AfterAwaiter,
 
     /// <summary>
     ///     Arguments:
     ///     * element name: string
     ///     * eventBody: unknown? data container
     /// </summary>
-    DispatchEvent = 0x56,
+    DispatchEvent,
 
     /// <summary>
     ///     Arguments:
@@ -88,14 +90,15 @@ public enum Instructions : byte
     ///     * length: int
     ///     * body: bytes
     /// </summary>
-    DeclareScript = 0x61,
+    DeclareScript,
 
     /// <summary>
     ///     Arguments:
     ///     * name: string
     /// </summary>
-    CallScript = 0x62,
-    Return = 0x63,
+    CallScript,
+
+    Return,
 
     /// <summary>
     ///     Arguments:
@@ -103,5 +106,11 @@ public enum Instructions : byte
     ///     * then script name: string
     ///     * else script name: string
     /// </summary>
-    IfStatement = 0x64
+    IfStatement,
+
+    /// <summary>
+    ///     Arguments:
+    ///     * instruction: 1byte
+    /// </summary>
+    Extension
 }

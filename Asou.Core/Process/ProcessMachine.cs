@@ -8,8 +8,8 @@ namespace Asou.Core.Process;
 
 public class ProcessMachine : IProcessMachineCommands
 {
+    private readonly Dictionary<string, BaseElement> _components = new();
     private readonly IParameterBinder _parameterBinder;
-    private readonly Dictionary<string, BaseElement> _components = new ();
     private readonly Dictionary<string, object?> _parameters = new();
     private readonly Dictionary<string, Action> _procedures = new();
 
@@ -19,11 +19,11 @@ public class ProcessMachine : IProcessMachineCommands
         Name = name;
     }
 
+    public required ComponentFactoryMethod ComponentFactory { get; init; }
+
     public IReadOnlyDictionary<string, BaseElement> Components => _components;
     public IReadOnlyDictionary<string, object?> Parameters => _parameters;
     public IReadOnlyDictionary<string, Action> Procedures => _procedures;
-
-    public required ComponentFactoryMethod ComponentFactory { get; init; }
 
     public string Name { get; init; }
 

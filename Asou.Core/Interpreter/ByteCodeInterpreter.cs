@@ -1,9 +1,9 @@
 using Asou.Abstractions;
-using Asou.Core.Process;
+using Asou.Core.Interpreter.Extensions;
 
 namespace Asou.Core.Interpreter;
 
-public class ByteCodeInterpreter
+public class ByteCodeInterpreter : IByteCodeInterpreter
 {
     private readonly bool _dryRun;
     private readonly IProcessMachineCommands _processMachine;
@@ -11,6 +11,7 @@ public class ByteCodeInterpreter
 
     private readonly Dictionary<string, ScriptPointer> _scriptPositions = new();
     private readonly Stack<ReturnPointer> _callStack = new();
+    private readonly Dictionary<byte, IByteCodeInterpreterExtension> _exctensions = new();
 #if DEBUG
     public System.Text.StringBuilder DebugOutput = new();
     private string GetDebugOutputTab() => "".PadLeft(_callStack.Count, '\t');
@@ -40,6 +41,8 @@ public class ByteCodeInterpreter
         {
             case Instructions.None:
                 return Instructions.None;
+            case Instructions.Nope:
+                break;
             case Instructions.CreateComponent:
             {
                 var componentName = _reader.ReadString();
@@ -179,6 +182,13 @@ public class ByteCodeInterpreter
                 break;
             case Instructions.IfStatement:
                 throw new NotImplementedException();
+            case Instructions.Extension:
+                var extension = _reader.ReadByte();
+                var subInstruction = _reader.ReadByte();
+                if (_exctensions.TryGetValue(extension, out var byteCodeExtension))
+                    await byteCodeExtension.ExecuteInstructionAsync(subInstruction, _reader, _processMachine,
+                        cancellationToken);
+                break;
             default:
                 throw new ArgumentOutOfRangeException();
         }

@@ -6,7 +6,7 @@ using Asou.Core.Container;
 
 namespace Asou.Core.Interpreter;
 
-public class ByteCodeFormatReader
+public sealed class ByteCodeFormatReader
 {
     private readonly byte[] _code;
 

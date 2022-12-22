@@ -6,8 +6,8 @@ namespace Asou.Core.Benchmark;
 
 public class StringHash
 {
-    private string testString1;
-    private string testString2;
+    private string testString1 = "";
+    private string testString2 = "";
 
     [GlobalSetup]
     public void Setup()
