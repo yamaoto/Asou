@@ -113,12 +113,18 @@ public sealed class ByteCodeFormatReader
             case AsouTypes.Guid:
                 return JsonSerializer.Deserialize<Guid>(ReadString());
             case AsouTypes.Object:
-                return ReadContainer();
+                return ReadContainerValue();
             case AsouTypes.ObjectLink:
                 throw new NotImplementedException();
             default:
                 throw new ArgumentOutOfRangeException(nameof(type), type, null);
         }
+    }
+
+    public object? ReadContainerValue()
+    {
+        var container = ReadContainer();
+        throw new NotImplementedException();
     }
 
     public IContainer ReadContainer()
