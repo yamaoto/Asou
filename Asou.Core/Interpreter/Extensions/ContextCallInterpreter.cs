@@ -1,10 +1,20 @@
 using Asou.Abstractions;
+using Microsoft.Extensions.Configuration;
 
 namespace Asou.Core.Interpreter.Extensions;
 
 public class ContextCallInterpreter : IByteCodeInterpreterExtension
 {
+    private readonly IConfiguration _configuration;
+
     public const byte ContextCallExtensionCode = 1;
+
+    public ContextCallInterpreter(
+        IConfiguration configuration
+        )
+    {
+        _configuration = configuration;
+    }
 
     public Task ExecuteInstructionAsync(byte instruction, ByteCodeFormatReader reader,
         IProcessMachineCommands processMachineCommands,
@@ -25,7 +35,8 @@ public class ContextCallInterpreter : IByteCodeInterpreterExtension
             {
                 var configPath = reader.ReadString();
                 var parameterName = reader.ReadString();
-                processMachineCommands.SetParameter(parameterName, AsouTypes.UnSet, configPath);
+                var value = _configuration[configPath];
+                processMachineCommands.SetParameter(parameterName, AsouTypes.String, value);
             }
                 break;
             case ContextCallInstructions.CallFunc:

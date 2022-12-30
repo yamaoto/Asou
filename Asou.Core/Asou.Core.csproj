@@ -8,6 +8,7 @@
 
     <ItemGroup>
         <PackageReference Include="HashDepot" Version="3.1.0" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup>
