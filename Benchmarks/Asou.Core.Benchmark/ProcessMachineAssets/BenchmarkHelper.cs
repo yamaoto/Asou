@@ -1,5 +1,5 @@
 using Asou.Abstractions;
-using Asou.Core.Interpreter;
+using Asou.ByteCodeEngine;
 
 namespace Asou.Core.Benchmark.ProcessMachineAssets;
 

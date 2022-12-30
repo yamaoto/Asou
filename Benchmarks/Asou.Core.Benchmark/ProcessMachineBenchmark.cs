@@ -1,6 +1,6 @@
 using Asou.Abstractions.ExecutionElements;
+using Asou.ByteCodeEngine;
 using Asou.Core.Benchmark.ProcessMachineAssets;
-using Asou.Core.Interpreter;
 using Asou.Core.Process;
 using Asou.Core.Process.Binding;
 using BenchmarkDotNet.Attributes;

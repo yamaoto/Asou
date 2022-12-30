@@ -1,7 +1,7 @@
 using Asou.Abstractions;
 using Microsoft.Extensions.Configuration;
 
-namespace Asou.Core.Interpreter.Extensions;
+namespace Asou.ByteCodeEngine.Extensions;
 
 public class ContextCallInterpreter : IByteCodeInterpreterExtension
 {

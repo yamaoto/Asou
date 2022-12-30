@@ -1,7 +1,6 @@
 using System.Text.Json;
-using Asou.Abstractions;
 
-namespace Asou.Core.Container;
+namespace Asou.Abstractions.Container;
 
 public class ValueContainer : IContainer
 {

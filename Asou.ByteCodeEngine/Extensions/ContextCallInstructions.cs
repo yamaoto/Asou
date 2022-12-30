@@ -1,4 +1,4 @@
-namespace Asou.Core.Interpreter.Extensions;
+namespace Asou.ByteCodeEngine.Extensions;
 
 public enum ContextCallInstructions : byte
 {

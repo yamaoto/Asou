@@ -2,9 +2,9 @@ using System.Buffers.Binary;
 using System.Text;
 using System.Text.Json;
 using Asou.Abstractions;
-using Asou.Core.Container;
+using Asou.Abstractions.Container;
 
-namespace Asou.Core.Interpreter;
+namespace Asou.ByteCodeEngine;
 
 public sealed class ByteCodeFormatReader
 {

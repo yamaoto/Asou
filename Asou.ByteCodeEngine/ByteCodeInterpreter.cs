@@ -1,7 +1,7 @@
 using Asou.Abstractions;
-using Asou.Core.Interpreter.Extensions;
+using Asou.ByteCodeEngine.Extensions;
 
-namespace Asou.Core.Interpreter;
+namespace Asou.ByteCodeEngine;
 
 public class ByteCodeInterpreter : IByteCodeInterpreter
 {

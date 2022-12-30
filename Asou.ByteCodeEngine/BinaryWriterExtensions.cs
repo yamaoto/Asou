@@ -1,7 +1,7 @@
 using System.Text;
 using Asou.Abstractions;
 
-namespace Asou.Core.Interpreter;
+namespace Asou.ByteCodeEngine;
 
 public class ByteCodeWriter : BinaryWriter
 {

@@ -1,4 +1,4 @@
-namespace Asou.Core.Interpreter;
+namespace Asou.ByteCodeEngine;
 
 public struct ReturnPointer
 {

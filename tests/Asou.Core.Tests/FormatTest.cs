@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Asou.Abstractions;
 using Asou.Abstractions.ExecutionElements;
-using Asou.Core.Interpreter;
+using Asou.ByteCodeEngine;
 using Asou.Core.Process;
 using Asou.Core.Process.Binding;
 using Xunit.Abstractions;

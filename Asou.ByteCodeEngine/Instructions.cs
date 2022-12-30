@@ -1,4 +1,4 @@
-﻿namespace Asou.Core.Interpreter;
+﻿namespace Asou.ByteCodeEngine;
 
 public enum Instructions : byte
 {
@@ -103,8 +103,8 @@ public enum Instructions : byte
     /// <summary>
     ///     Arguments:
     ///     * condition: unknown?
-    ///     * then script name: string
-    ///     * else script name: string
+    ///     * then command
+    ///     * else command
     /// </summary>
     IfStatement,
 

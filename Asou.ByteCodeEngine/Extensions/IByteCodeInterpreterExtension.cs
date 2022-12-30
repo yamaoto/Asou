@@ -1,6 +1,6 @@
 using Asou.Abstractions;
 
-namespace Asou.Core.Interpreter.Extensions;
+namespace Asou.ByteCodeEngine.Extensions;
 
 public interface IByteCodeInterpreterExtension
 {
