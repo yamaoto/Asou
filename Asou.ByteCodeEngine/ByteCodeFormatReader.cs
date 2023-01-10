@@ -41,8 +41,7 @@ public sealed class ByteCodeFormatReader
         var initial = Convert.ToInt32(Position);
         while (_code[Position] != 0) Position++;
 
-        if (initial == Position)
-            return "";
+        if (initial == Position) return "";
 
         var result = Encoding.UTF8.GetString(_code, initial, Convert.ToInt32(Position) - initial);
 
@@ -88,7 +87,7 @@ public sealed class ByteCodeFormatReader
 
     public decimal ReadDecimal()
     {
-        return new decimal(ReadBytes<int>(16));
+        return new(ReadBytes<int>(16));
     }
 
     public object? ReadValue(AsouTypes type)

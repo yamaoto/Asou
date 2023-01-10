@@ -61,7 +61,7 @@ public class FormatTest
         var storage = new ByteCodeStorage();
         storage.Register(nameof(FormatTest), stream.GetBuffer());
         var test = new List<string>();
-        var processMachine = new ProcessMachine(new ParameterBinder(new ParameterDelegateFactory()), nameof(FormatTest))
+        var processMachine = new ProcessRuntime(new ParameterDelegateFactory(), nameof(FormatTest))
         {
             ComponentFactory = (name, objectName) => CreateElement(name, test)
         };

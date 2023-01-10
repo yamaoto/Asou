@@ -21,17 +21,16 @@ public class BindingTest
         // Arrange
         var testElement = new TestElement();
         var parameterDelegateFactory = new ParameterDelegateFactory();
-        parameterDelegateFactory.CreateDelegates<string>(testElement, "ParameterA");
-        var parameterBinder = new ParameterBinder(parameterDelegateFactory);
-        var processMachine = new ProcessMachine(parameterBinder, nameof(FormatTest))
+        parameterDelegateFactory.CreateDelegates<TestElement, string>("ParameterA");
+        var processMachine = new ProcessRuntime(parameterDelegateFactory, nameof(FormatTest))
         {
-            ComponentFactory = (name, objectName) => testElement
+            ComponentFactory = (_, _) => testElement
         };
         processMachine.CreateComponent("testElement", "testElement");
         var stopWatch = Stopwatch.StartNew();
 
         // Act
-        var result = processMachine.GetElementParameter<string>("testElement", "ParameterA");
+        var result = processMachine.GetElementParameter("testElement", "ParameterA");
 
         stopWatch.Stop();
         _testOutputHelper.WriteLine("Act elapsed {0} ms", stopWatch.ElapsedMilliseconds);
@@ -46,9 +45,8 @@ public class BindingTest
         // Arrange
         var testElement = new TestElement();
         var parameterDelegateFactory = new ParameterDelegateFactory();
-        parameterDelegateFactory.CreateDelegates<string>(testElement, "ParameterA");
-        var parameterBinder = new ParameterBinder(parameterDelegateFactory);
-        var processMachine = new ProcessMachine(parameterBinder, nameof(FormatTest))
+        parameterDelegateFactory.CreateDelegates<TestElement, string>("ParameterA");
+        var processMachine = new ProcessRuntime(parameterDelegateFactory, nameof(FormatTest))
         {
             ComponentFactory = (name, objectName) => testElement
         };
@@ -67,7 +65,7 @@ public class BindingTest
 
     private class TestElement : BaseElement
     {
-        public string ParameterA { get; } = "HELLO";
+        public string ParameterA { get; set; } = "HELLO";
 
         public override string ClassName { get; init; } = nameof(TestElement);
 

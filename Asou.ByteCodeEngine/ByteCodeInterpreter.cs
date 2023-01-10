@@ -34,6 +34,7 @@ public class ByteCodeInterpreter : IByteCodeInterpreter
     public async Task<Instructions> EvaluateNextAsync(CancellationToken cancellationToken = default)
     {
         if (_reader.IsEndOfCode) return Instructions.None;
+
         var read = _reader.ReadByte();
         var instruction = (Instructions)read;
 
@@ -51,8 +52,8 @@ public class ByteCodeInterpreter : IByteCodeInterpreter
 #if DEBUG
                 WriteDebugCode(instruction, componentName, name);
 #endif
-                if (_dryRun)
-                    break;
+                if (_dryRun) break;
+
                 _processMachine.CreateComponent(componentName, name);
             }
                 break;
@@ -64,8 +65,8 @@ public class ByteCodeInterpreter : IByteCodeInterpreter
 #if DEBUG
                 WriteDebugCode(instruction, parameterName);
 #endif
-                if (_dryRun)
-                    break;
+                if (_dryRun) break;
+
                 _processMachine.LetParameter(parameterName);
             }
                 break;
@@ -75,8 +76,8 @@ public class ByteCodeInterpreter : IByteCodeInterpreter
 #if DEBUG
                 WriteDebugCode(instruction, parameterName);
 #endif
-                if (_dryRun)
-                    break;
+                if (_dryRun) break;
+
                 _processMachine.DeleteParameter(parameterName);
             }
                 break;
@@ -88,8 +89,8 @@ public class ByteCodeInterpreter : IByteCodeInterpreter
 #if DEBUG
                 WriteDebugCode(instruction, parameterName, parameterType, parameterValue!);
 #endif
-                if (_dryRun)
-                    break;
+                if (_dryRun) break;
+
                 _processMachine.SetParameter(parameterName, parameterType, parameterValue);
             }
                 break;
@@ -99,8 +100,8 @@ public class ByteCodeInterpreter : IByteCodeInterpreter
 #if DEBUG
                 WriteDebugCode(instruction, procedureName);
 #endif
-                if (_dryRun)
-                    break;
+                if (_dryRun) break;
+
                 _processMachine.CallProcedure(procedureName);
             }
                 break;
@@ -110,8 +111,8 @@ public class ByteCodeInterpreter : IByteCodeInterpreter
 #if DEBUG
                 WriteDebugCode(instruction, elementName);
 #endif
-                if (_dryRun)
-                    break;
+                if (_dryRun) break;
+
                 await _processMachine.ExecuteElementAsync(elementName, cancellationToken);
             }
                 break;
@@ -121,8 +122,8 @@ public class ByteCodeInterpreter : IByteCodeInterpreter
 #if DEBUG
                 WriteDebugCode(instruction, elementName);
 #endif
-                if (_dryRun)
-                    break;
+                if (_dryRun) break;
+
                 await _processMachine.AfterExecuteElementAsync(elementName, cancellationToken);
             }
                 break;
@@ -132,8 +133,8 @@ public class ByteCodeInterpreter : IByteCodeInterpreter
 #if DEBUG
                 WriteDebugCode(instruction, elementName);
 #endif
-                if (_dryRun)
-                    break;
+                if (_dryRun) break;
+
                 await _processMachine.ConfigureAwaiterAsync(elementName, cancellationToken);
             }
                 break;
@@ -159,6 +160,7 @@ public class ByteCodeInterpreter : IByteCodeInterpreter
                 var name = _reader.ReadString();
                 if (!_scriptPositions.ContainsKey(name))
                     throw new Exception($"Script with name '{name}' not registered");
+
                 var end = _scriptPositions[name].Start + _scriptPositions[name].Length;
 #if DEBUG
                 WriteDebugCode(instruction, name);
@@ -188,6 +190,7 @@ public class ByteCodeInterpreter : IByteCodeInterpreter
                 if (_exctensions.TryGetValue(extension, out var byteCodeExtension))
                     await byteCodeExtension.ExecuteInstructionAsync(subInstruction, _reader, _processMachine,
                         cancellationToken);
+
                 break;
             default:
                 throw new ArgumentOutOfRangeException();

@@ -10,6 +10,7 @@ public interface IProcessMachineCommands : IProcessMachine
     Task ExecuteElementAsync(string elementName, CancellationToken cancellationToken = default);
     Task AfterExecuteElementAsync(string elementName, CancellationToken cancellationToken = default);
     Task ConfigureAwaiterAsync(string elementName, CancellationToken cancellationToken = default);
-    void SetElementParameter<T>(string elementName, string parameterName, T value);
-    T GetElementParameter<T>(string elementName, string parameterName);
+    void SetElementParameter(string elementName, string parameterName, object value);
+    object GetElementParameter(string elementName, string parameterName);
+    object GetElementParameter<T>(Type elementType, string elementName, string parameterName) where T : class;
 }

@@ -6,23 +6,25 @@ using Asou.Core.Process.Delegates;
 
 namespace Asou.Core.Process;
 
-public class ProcessMachine : IProcessMachineCommands
+public sealed class ProcessRuntime : IProcessMachineCommands
 {
     private readonly Dictionary<string, BaseElement> _components = new();
-    private readonly IParameterBinder _parameterBinder;
-    private readonly Dictionary<string, object?> _parameters = new();
+    private readonly IParameterDelegateFactory _parameterDelegateFactory;
     private readonly Dictionary<string, Action> _procedures = new();
 
-    public ProcessMachine(IParameterBinder parameterBinder, string name)
+    public ProcessRuntime(
+        IParameterDelegateFactory parameterDelegateFactory,
+        string name)
     {
-        _parameterBinder = parameterBinder;
+        _parameterDelegateFactory = parameterDelegateFactory;
         Name = name;
     }
 
     public required ComponentFactoryMethod ComponentFactory { get; init; }
 
     public IReadOnlyDictionary<string, BaseElement> Components => _components;
-    public IReadOnlyDictionary<string, object?> Parameters => _parameters;
+    public ProcessParameters Parameters { get; } = new();
+
     public IReadOnlyDictionary<string, Action> Procedures => _procedures;
 
     public string Name { get; init; }
@@ -37,17 +39,17 @@ public class ProcessMachine : IProcessMachineCommands
 
     public void LetParameter(string parameterName)
     {
-        _parameters[parameterName] = new object();
+        Parameters[parameterName] = new object();
     }
 
     public void DeleteParameter(string parameterName)
     {
-        _parameters.Remove(parameterName);
+        Parameters.Remove(parameterName);
     }
 
     public void SetParameter(string parameterName, AsouTypes parameterType, object? parameterValue)
     {
-        _parameters[parameterName] = parameterValue;
+        Parameters[parameterName] = parameterValue;
     }
 
     public void CallProcedure(string procedureName)
@@ -81,16 +83,30 @@ public class ProcessMachine : IProcessMachineCommands
         await element.ConfigureAwaiterAsync(cancellationToken);
     }
 
-    public void SetElementParameter<T>(string elementName, string parameterName, T value)
+    public void SetElementParameter(string elementName, string parameterName, object value)
     {
         if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
-        _parameterBinder.SetParameter(Components[elementName], parameterName, value);
+
+        _parameterDelegateFactory.SetParameter(Components[elementName].GetType(),
+            Components[elementName],
+            parameterName, value);
     }
 
-    public T GetElementParameter<T>(string elementName, string parameterName)
+    public object GetElementParameter(string elementName, string parameterName)
     {
         if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
-        return _parameterBinder.GetParameter<T>(Components[elementName], parameterName);
+
+        return _parameterDelegateFactory.GetParameter(Components[elementName].GetType(),
+            Components[elementName],
+            parameterName);
+    }
+
+    public object GetElementParameter<T>(Type elementType, string elementName, string parameterName) where T : class
+    {
+        if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
+
+        var getter = _parameterDelegateFactory.GetParameterGetter<T>(elementType, parameterName);
+        return getter.Invoke(Unsafe.As<T>(Components[elementName]));
     }
 
     #endregion

@@ -5,13 +5,12 @@ namespace Asou.ByteCodeEngine.Extensions;
 
 public class ContextCallInterpreter : IByteCodeInterpreterExtension
 {
-    private readonly IConfiguration _configuration;
-
     public const byte ContextCallExtensionCode = 1;
+    private readonly IConfiguration _configuration;
 
     public ContextCallInterpreter(
         IConfiguration configuration
-        )
+    )
     {
         _configuration = configuration;
     }
@@ -72,8 +71,7 @@ public class ContextCallInterpreter : IByteCodeInterpreterExtension
                 var elementParameterName = reader.ReadString();
                 var elementParameterType = reader.ReadType();
                 var parameterName = reader.ReadString();
-                var value = GetElementParameter(processMachineCommands, elementParameterType, elementName,
-                    elementParameterName);
+                var value = processMachineCommands.GetElementParameter(elementName, elementParameterName);
                 processMachineCommands.SetParameter(parameterName, elementParameterType, value);
             }
                 break;
@@ -94,27 +92,5 @@ public class ContextCallInterpreter : IByteCodeInterpreterExtension
         }
 
         return Task.CompletedTask;
-    }
-
-    private object? GetElementParameter(IProcessMachineCommands processMachineCommands, AsouTypes elementParameterType,
-        string elementName, string elementParameterName)
-    {
-        return elementParameterType switch
-        {
-            AsouTypes.UnSet => throw new NotImplementedException(),
-            AsouTypes.Boolean => processMachineCommands.GetElementParameter<bool?>(elementName, elementParameterName),
-            AsouTypes.Integer => processMachineCommands.GetElementParameter<int?>(elementName, elementParameterName),
-            AsouTypes.Float => processMachineCommands.GetElementParameter<float?>(elementName, elementParameterName),
-            AsouTypes.Decimal => processMachineCommands.GetElementParameter<decimal?>(elementName,
-                elementParameterName),
-            AsouTypes.String => processMachineCommands.GetElementParameter<string?>(elementName, elementParameterName),
-            AsouTypes.DateTime => processMachineCommands.GetElementParameter<DateTime?>(elementName,
-                elementParameterName),
-            AsouTypes.Guid => processMachineCommands.GetElementParameter<Guid?>(elementName, elementParameterName),
-            AsouTypes.Object => throw new NotImplementedException(),
-            AsouTypes.ObjectLink => throw new NotImplementedException(),
-            AsouTypes.NullObject => null,
-            _ => throw new ArgumentOutOfRangeException()
-        };
     }
 }

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="..\..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\Asou.Core\Asou.Core.csproj"/>
+        <ProjectReference Include="..\..\Asou.GraphEngine.CodeContractStorage\Asou.GraphEngine.CodeContractStorage.csproj"/>
+        <ProjectReference Include="..\..\Asou.GraphEngine\Asou.GraphEngine.csproj"/>
+    </ItemGroup>
+
+</Project>

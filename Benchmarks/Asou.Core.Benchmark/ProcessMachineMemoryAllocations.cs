@@ -10,19 +10,17 @@ namespace Asou.Core.Benchmark;
 public class ProcessMachineMemoryAllocations
 {
     private ByteCodeInterpreter? _byteCodeInterpreter;
-    private ProcessMachine? _processMachine;
+    private ProcessRuntime? _processMachine;
 
     [Params(10, 100, 1000)] public int Count { get; set; }
 
     [GlobalSetup]
     public void GlobalSetup()
     {
-        _processMachine = new ProcessMachine(new ParameterBinder(new ParameterDelegateFactory()),
-            nameof(ProcessMachineBenchmark))
-        {
-            ComponentFactory = (name, objectName) => null!
-        };
-        _byteCodeInterpreter = new ByteCodeInterpreter(true, BenchmarkHelper.GetTestCode(Count), _processMachine);
+        _processMachine = new ProcessRuntime(new ParameterDelegateFactory(),
+            nameof(ProcessMachineBenchmark)) { ComponentFactory = (name, objectName) => null! };
+        _byteCodeInterpreter =
+            new ByteCodeInterpreter(true, BenchmarkHelper.GetTestCode(Count), _processMachine);
     }
 
     [Benchmark(OperationsPerInvoke = 1)]

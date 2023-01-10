@@ -10,6 +10,7 @@ public static class BenchmarkHelper
     public static ByteCodeStorage GetTestCode(int stepCount)
     {
         if (_store != null) return _store;
+
         var stream = new MemoryStream();
         var builder = new ByteCodeWriter(stream);
         builder.DeclareScript("prepare", b =>

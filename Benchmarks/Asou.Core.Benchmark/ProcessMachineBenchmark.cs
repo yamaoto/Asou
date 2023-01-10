@@ -14,7 +14,7 @@ namespace Asou.Core.Benchmark;
 public class ProcessMachineBenchmark
 {
     private ByteCodeInterpreter? _byteCodeInterpreter;
-    private ProcessMachine? _processMachine;
+    private ProcessRuntime? _processMachine;
 
 #if DEBUG
     public static string GetCode(ProcessMachineBenchmark benchmark) => benchmark._byteCodeInterpreter!.DebugOutput.ToString();
@@ -23,12 +23,10 @@ public class ProcessMachineBenchmark
     [GlobalSetup]
     public void GlobalSetup()
     {
-        _processMachine = new ProcessMachine(new ParameterBinder(new ParameterDelegateFactory()),
-            nameof(ProcessMachineBenchmark))
-        {
-            ComponentFactory = (name, objectName) => CreateElement(name)
-        };
-        _byteCodeInterpreter = new ByteCodeInterpreter(false, BenchmarkHelper.GetTestCode(Count), _processMachine);
+        _processMachine = new ProcessRuntime(new ParameterDelegateFactory(),
+            nameof(ProcessMachineBenchmark)) { ComponentFactory = (name, objectName) => CreateElement(name) };
+        _byteCodeInterpreter =
+            new ByteCodeInterpreter(false, BenchmarkHelper.GetTestCode(Count), _processMachine);
     }
 
     [Params(10, 100, 1000)] public int Count { get; set; }

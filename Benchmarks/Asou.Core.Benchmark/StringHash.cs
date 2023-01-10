@@ -16,6 +16,7 @@ public class StringHash
         for (var i = 0; i < 2; i++)
             foreach (char j in Enumerable.Range('\x1', 127).ToArray())
                 st.Append(j);
+
         testString1 = st.ToString();
         testString2 = st.ToString();
     }
