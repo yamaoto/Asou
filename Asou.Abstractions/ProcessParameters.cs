@@ -2,10 +2,14 @@ using System.Collections;
 
 namespace Asou.Abstractions;
 
+/// <summary>A collection of parameters to be passed to a process.</summary>
 public class ProcessParameters : IReadOnlyDictionary<string, object?>
 {
     private readonly Dictionary<string, object?> _innerDictionary;
 
+    /// <summary>
+    /// Constructor for ProcessParameters class
+    /// </summary>
     public ProcessParameters()
     {
         _innerDictionary = new Dictionary<string, object?>();

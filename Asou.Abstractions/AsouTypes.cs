@@ -1,5 +1,6 @@
 namespace Asou.Abstractions;
 
+/// <summary>Enum represent type system.</summary>
 public enum AsouTypes : byte
 {
     /// <summary>
