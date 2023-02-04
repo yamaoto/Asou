@@ -23,6 +23,10 @@ public class ProcessExecutionEngine
         _logger = logger;
     }
 
+    // TODO: Resume execution after restart
+    // TODO: Handle events: send events to process
+    // TODO: Handle events: resume awaiter
+
     public async Task<ProcessParameters> ExecuteAsync(Guid processContractId, ProcessParameters parameters,
         CancellationToken cancellationToken = default)
     {

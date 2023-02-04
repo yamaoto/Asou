@@ -81,8 +81,17 @@ public sealed class ProcessRuntime : IProcessMachineCommands
         if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
 
         var element = Unsafe.As<IAsyncExecutionElement>(Components[elementName]);
-        var subscriptions = await element.ConfigureAwaiterAsync(cancellationToken);
+        var subscriptions = await element.ConfigureSubscriptionsAsync(cancellationToken);
         return subscriptions;
+    }
+
+    public async Task<bool> ValidateSubscriptionEventAsync(string elementName, EventRepresentation eventRepresentation, CancellationToken cancellationToken = default)
+    {
+        if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
+
+        var element = Unsafe.As<IAsyncExecutionElement>(Components[elementName]);
+        var result = await element.ValidateSubscriptionEventAsync(eventRepresentation, cancellationToken);
+        return result;
     }
 
     public void SetElementParameter(string elementName, string parameterName, object value)

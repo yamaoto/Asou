@@ -1,3 +1,4 @@
+using Asou.Abstractions;
 using Asou.Abstractions.Events;
 using Asou.Abstractions.ExecutionElements;
 
@@ -10,11 +11,11 @@ public class AwaiterStep : BaseElement, IAfterExecute, IAsyncExecutionElement
         return Task.CompletedTask;
     }
 
-    public Task<IEnumerable<EventSubscription>> ConfigureAwaiterAsync(CancellationToken cancellationToken = default)
+    public Task<IEnumerable<EventSubscription>> ConfigureSubscriptionsAsync(CancellationToken cancellationToken = default)
     {
         // subscribe to event with type MyEventTpe and subject MyEventSubject
         return Task.FromResult((IEnumerable<EventSubscription>) new[] {
-            new EventSubscription("MyEventTpe", "MyEventSubject")
+            new EventSubscription("", "MyEventTpe", "MyEventSubject", EventSubscriptionType.AsyncExecutionResumer)
         });
     }
 
@@ -22,4 +23,7 @@ public class AwaiterStep : BaseElement, IAfterExecute, IAsyncExecutionElement
     {
         return Task.CompletedTask;
     }
+
+    public Task<bool> ValidateSubscriptionEventAsync(EventRepresentation eventRepresentation, CancellationToken cancellationToken = default)
+        => Task.FromResult(true);
 }

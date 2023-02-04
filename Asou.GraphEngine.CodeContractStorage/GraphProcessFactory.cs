@@ -53,7 +53,7 @@ public class GraphProcessFactory : IGraphProcessFactory
                 (BaseElement)scope.ServiceProvider.GetRequiredService(nodes[componentName].Type)
         };
         var processInstance = new GraphProcessInstance(processInstanceId, graphProcessContract.ProcessContract,
-            processRuntime, startNode, nodes.Values.ToList(),
+            processRuntime, startNode, nodes.Values.ToArray(),
             scope);
 
         return Task.FromResult((IProcessInstance)processInstance);
