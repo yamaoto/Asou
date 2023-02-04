@@ -67,8 +67,6 @@ public class BindingTest
     {
         public string ParameterA { get; set; } = "HELLO";
 
-        public override string ClassName { get; init; } = nameof(TestElement);
-
         public override Task ExecuteAsync(CancellationToken cancellationToken = default)
         {
             return Task.CompletedTask;

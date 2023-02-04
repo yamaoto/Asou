@@ -4,8 +4,6 @@ namespace WebApplication1.SampleProcess;
 
 public class ConditionalStep : BaseElement, IPreconfiguredConditions
 {
-    public override string ClassName { get; init; } = nameof(ConditionalStep);
-
     public bool CheckCondition(string name)
     {
         return name switch

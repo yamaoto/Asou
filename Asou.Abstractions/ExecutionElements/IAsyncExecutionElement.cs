@@ -8,6 +8,6 @@ public interface IAsyncExecutionElement
 {
     /// <summary>Configures the persistant awaiter.</summary>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the operation.</returns>
+    /// <returns>Subsctipyions for target events</returns>
     public Task<IEnumerable<EventSubscription>> ConfigureAwaiterAsync(CancellationToken cancellationToken = default);
 }

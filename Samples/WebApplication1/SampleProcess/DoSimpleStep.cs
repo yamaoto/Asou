@@ -4,8 +4,6 @@ namespace WebApplication1.SampleProcess;
 
 public class DoSimpleStep : BaseElement
 {
-    public override string ClassName { get; init; } = nameof(DoSimpleStep);
-
     public string? Parameter1 { get; set; }
     public string? Parameter2 { get; set; }
 

@@ -113,8 +113,6 @@ public class FormatTest
             _test = test;
         }
 
-        public override string ClassName { get; init; } = nameof(Start);
-
         public override Task ExecuteAsync(CancellationToken cancellationToken)
         {
             _test.Add("start");
@@ -131,9 +129,6 @@ public class FormatTest
         {
             _test = test;
         }
-
-        public override string ClassName { get; init; } = nameof(DoWork1);
-
 
         public string? ParameterA { get; set; }
         public string? ParameterB { get; set; }
@@ -155,9 +150,6 @@ public class FormatTest
             _test = test;
         }
 
-        public override string ClassName { get; init; } = nameof(DoWork2);
-
-
         public string? ParameterA { get; set; }
         public string? ParameterB { get; set; }
 
@@ -177,9 +169,6 @@ public class FormatTest
         {
             _test = test;
         }
-
-        public override string ClassName { get; init; } = nameof(End);
-
 
         public override Task ExecuteAsync(CancellationToken cancellationToken)
         {
