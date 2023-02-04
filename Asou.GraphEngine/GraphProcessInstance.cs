@@ -88,7 +88,8 @@ public class GraphProcessInstance : IProcessInstance
 
         if (state == ExecutionStatuses.ConfigureAwaiter)
         {
-            await ProcessRuntime.ConfigureAwaiterAsync(node.Name, cancellationToken);
+            var subscriptions = await ProcessRuntime.ConfigureAwaiterAsync(node.Name, cancellationToken);
+            // TODO: Store subscriptions
             return ExecutionStatuses.Exit;
         }
 

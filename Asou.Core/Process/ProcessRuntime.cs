@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Asou.Abstractions;
+using Asou.Abstractions.Events;
 using Asou.Abstractions.ExecutionElements;
 using Asou.Core.Process.Binding;
 using Asou.Core.Process.Delegates;
@@ -75,12 +76,13 @@ public sealed class ProcessRuntime : IProcessMachineCommands
         await element.AfterExecuteAsync(cancellationToken);
     }
 
-    public async Task ConfigureAwaiterAsync(string elementName, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<EventSubscription>> ConfigureAwaiterAsync(string elementName, CancellationToken cancellationToken = default)
     {
         if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
 
         var element = Unsafe.As<IAsyncExecutionElement>(Components[elementName]);
-        await element.ConfigureAwaiterAsync(cancellationToken);
+        var subscriptions = await element.ConfigureAwaiterAsync(cancellationToken);
+        return subscriptions;
     }
 
     public void SetElementParameter(string elementName, string parameterName, object value)

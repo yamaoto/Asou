@@ -1,3 +1,5 @@
+using Asou.Abstractions.Events;
+
 namespace Asou.Abstractions;
 
 /// <summary>Processes commands from the process state machine.</summary>
@@ -43,7 +45,7 @@ public interface IProcessMachineCommands : IProcessMachine
     /// <param name="elementName">The name of the element.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <returns>A task that represents the operation.</returns>
-    Task ConfigureAwaiterAsync(string elementName, CancellationToken cancellationToken = default);
+    Task<IEnumerable<EventSubscription>> ConfigureAwaiterAsync(string elementName, CancellationToken cancellationToken = default);
     
     /// <summary>Sets the value of a parameter on an element.</summary>
     /// <param name="elementName">The name of the element.</param>

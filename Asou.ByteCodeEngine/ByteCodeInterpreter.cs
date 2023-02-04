@@ -135,7 +135,8 @@ public class ByteCodeInterpreter : IByteCodeInterpreter
 #endif
                 if (_dryRun) break;
 
-                await _processMachine.ConfigureAwaiterAsync(elementName, cancellationToken);
+                var subscriptions = await _processMachine.ConfigureAwaiterAsync(elementName, cancellationToken);
+                // TODO: Store subscriptions
             }
                 break;
             case Instructions.ValidateEvent:
