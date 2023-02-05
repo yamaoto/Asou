@@ -14,6 +14,9 @@ public class GraphProcessInstance : IProcessInstance
     private readonly IServiceScope _serviceScope;
     private readonly Dictionary<Guid, Guid> _threads = new();
     private readonly Dictionary<string, int> _nodeMap = new();
+    private Queue<Tuple<ElementNodeId, int>> _executionQueue = new();
+    private TaskCompletionSource _queueTaskCompletionSource;
+
 
     public GraphProcessInstance(
         Guid id,
@@ -66,7 +69,7 @@ public class GraphProcessInstance : IProcessInstance
     /// <param name="eventSubscriptionType"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task HandleSubscriptionEventAsync(Guid threadId, string elementName, EventRepresentation eventRepresentation, EventSubscriptionType eventSubscriptionType, CancellationToken cancellationToken = default)
+    public async Task HandleSubscriptionEventAsync(Guid subscriptionId, Guid threadId, string elementName, EventRepresentation eventRepresentation, EventSubscriptionType eventSubscriptionType, CancellationToken cancellationToken = default)
     {
         if (!_nodeMap.TryGetValue(elementName, out var pos))
         {
@@ -82,16 +85,18 @@ public class GraphProcessInstance : IProcessInstance
             {
                 return;
             }
+            // Unsubscribe from event subscription
+            await _eventDriver.CancelSubscriptionAsync(subscriptionId, cancellationToken);
 
-            // Resume execution in new execution three
-            // Another way is handle execution queue in background and just enqueue here
-            // await ExecuteAsync(threadId, node, ExecutionStatuses.Exit, cancellationToken);
-            // TODO: resume execution
-            throw new NotImplementedException();
+            // Resume execution
+            _executionQueue.Enqueue(new(new ElementNodeId(threadId, node), ExecutionStatuses.Exit));
+            _queueTaskCompletionSource.SetResult();
         }
+
         if (eventSubscriptionType == EventSubscriptionType.EventHandler)
         {
             // TODO: Handle message in node
+            throw new NotImplementedException();
         }
     }
 
@@ -156,57 +161,70 @@ public class GraphProcessInstance : IProcessInstance
 
     private async Task ExecuteAsync(Guid threadId, ElementNode node, int initialState = ExecutionStatuses.Execute, CancellationToken cancellationToken = default)
     {
-        // TODO: extract queue into class to handle event subscriptions with return control flow feature
-        // TODO: The method should to return execution only after finish. event subscriptions breakes this feature
-        var queue = new Queue<Tuple<ElementNodeId, int>>();
-        queue.Enqueue(new(new ElementNodeId(threadId, node), initialState));
-        while (queue.Count > 0)
+        _executionQueue.Enqueue(new(new ElementNodeId(threadId, node), initialState));
+        while (true)
         {
-            var tuple = queue.Dequeue();
-            var current = tuple.Item1;
-            var state = tuple.Item2;
-            while (state != ExecutionStatuses.Exit && state != ExecutionStatuses.Break)
+            // TODO: Use counter of awaiting elements
+            if (_executionQueue.Count == 0)
             {
-                await SaveExecutionStatus(current.Id, current.Node.Name, state);
-
-                state = await MoveNextAsync(current.Node, state, cancellationToken);
+                // Wait new queue elements with TaskCompletionSource signal
+                _queueTaskCompletionSource = new TaskCompletionSource();
+                await _queueTaskCompletionSource.Task;
             }
-            if (state == ExecutionStatuses.Break)
+            await DequeueAndExecuteAsync();
+        }
+    }
+    private async Task DequeueAndExecuteAsync(CancellationToken cancellationToken = default)
+    {
+        var tuple = _executionQueue.Dequeue();
+        var current = tuple.Item1;
+        var state = tuple.Item2;
+        while (state != ExecutionStatuses.Exit && state != ExecutionStatuses.Break)
+        {
+            await SaveExecutionStatus(current.Id, current.Node.Name, state);
+
+            state = await MoveNextAsync(current.Node, state, cancellationToken);
+        }
+        if (state == ExecutionStatuses.Break)
+        {
+            // Break execution of current node
+            // TODO: Use counter for awaiting
+            return;
+        }
+
+        // Calculate next execution node
+        EnqueueNextExecution(current);
+    }
+
+    private void EnqueueNextExecution(ElementNodeId current)
+    {
+        // If gate is inclusive (bpmn x) this means taht only one node will be executed
+        // If gate is exclusive (bpmn +), all positive connections will be executed
+        var inclusiveFound = false;
+        var exit = false;
+        var currentThreadFound = false;
+        for (var i = 0; i < current.Node.Connections.Count; i++)
+        {
+            var edge = current.Node.Connections[i];
+            if (edge is ConditionalConnection conditionalElementNodeConnection)
             {
-                // Break execution of current node
-                continue;
-            }
+                var from = ProcessRuntime.Components[current.Node.Name];
+                var to = PrepareAndGetNodeElement(edge.To);
+                if (!conditionalElementNodeConnection.IsCanNavigate(this, from, to)) continue;
 
-            // TODO: Extract this code to method
-            // Calculate next execution node
-            // If gate is inclusive (bpmn x) this means taht only one node will be executed
-            // If gate is exclusive (bpmn +), all positive connections will be executed
-            var inclusiveFound = false;
-            var exit = false;
-            var currentThreadFound = false;
-            for (var i = 0; i < current.Node.Connections.Count; i++)
+                exit = true;
+            }
+            else
             {
-                var edge = current.Node.Connections[i];
-                if (edge is ConditionalConnection conditionalElementNodeConnection)
-                {
-                    var from = ProcessRuntime.Components[current.Node.Name];
-                    var to = PrepareAndGetNodeElement(edge.To);
-                    if (!conditionalElementNodeConnection.IsCanNavigate(this, from, to)) continue;
-
-                    exit = true;
-                }
-                else
-                {
-                    if (current.Node.IsInclusiveGate && !inclusiveFound) exit = true;
-                }
-
-                var next = edge.To;
-                var thread = currentThreadFound ? Guid.NewGuid() : current.Id;
-                queue.Enqueue(new(new ElementNodeId(thread, next), ExecutionStatuses.Execute));
-                currentThreadFound = true;
-                inclusiveFound = true;
-                if (!current.Node.IsInclusiveGate || exit) break;
+                if (current.Node.IsInclusiveGate && !inclusiveFound) exit = true;
             }
+
+            var next = edge.To;
+            var threadId = currentThreadFound ? Guid.NewGuid() : current.Id;
+            _executionQueue.Enqueue(new(new ElementNodeId(threadId, next), ExecutionStatuses.Execute));
+            currentThreadFound = true;
+            inclusiveFound = true;
+            if (!current.Node.IsInclusiveGate || exit) break;
         }
     }
 
@@ -221,12 +239,10 @@ public class GraphProcessInstance : IProcessInstance
     private async Task SaveExecutionStatus(Guid threadId,
         string elementName, int state)
     {
-        if (PersistType == PersistType.ElemExec && state == 0)
-            await _executionPersistence.SaveExecutionStatus(ProcessId, ProcessVersionId, Id,
-                threadId,
-                elementName, state);
-
-        if (PersistType == PersistType.ElemStateExec)
+        if (
+            (PersistType == PersistType.ElemExec && state == 0)
+            || (PersistType == PersistType.ElemStateExec)
+        )
             await _executionPersistence.SaveExecutionStatus(ProcessId, ProcessVersionId, Id,
                 threadId,
                 elementName, state);
