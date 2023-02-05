@@ -9,13 +9,14 @@ namespace Asou.GraphEngine;
 
 public class GraphProcessInstance : IProcessInstance
 {
-    private readonly IExecutionPersistence _executionPersistence;
+    private readonly IExecutionPersistence? _executionPersistence;
     private readonly IEventDriver _eventDriver;
     private readonly IServiceScope _serviceScope;
     private readonly Dictionary<Guid, Guid> _threads = new();
     private readonly Dictionary<string, int> _nodeMap = new();
     private Queue<Tuple<ElementNodeId, int>> _executionQueue = new();
     private TaskCompletionSource _queueTaskCompletionSource;
+    private int _awaitingSubscriptions;
 
 
     public GraphProcessInstance(
@@ -36,7 +37,7 @@ public class GraphProcessInstance : IProcessInstance
         {
             _nodeMap.Add(nodes[i].Name, i);
         }
-        _executionPersistence = serviceScope.ServiceProvider.GetRequiredService<IExecutionPersistence>();
+        _executionPersistence = serviceScope.ServiceProvider.GetService<IExecutionPersistence>();
         _eventDriver = serviceScope.ServiceProvider.GetRequiredService<IEventDriver>();
     }
 
@@ -55,6 +56,13 @@ public class GraphProcessInstance : IProcessInstance
     public async Task StartAsync(CancellationToken cancellationToken = default)
     {
         await ExecuteAsync(Guid.NewGuid(), StartNode, ExecutionStatuses.Execute, cancellationToken);
+    }
+
+    public Task ResumeAsync(CancellationToken cancellationToken = default)
+    {
+        // TODO: Restore _awaitingSubscriptions
+        // TODO: Enqueue next
+        throw new NotImplementedException();
     }
 
     /// <summary>
@@ -87,6 +95,9 @@ public class GraphProcessInstance : IProcessInstance
             }
             // Unsubscribe from event subscription
             await _eventDriver.CancelSubscriptionAsync(subscriptionId, cancellationToken);
+
+            // Decrease counter to handle correct process stop
+            _awaitingSubscriptions--;
 
             // Resume execution
             _executionQueue.Enqueue(new(new ElementNodeId(threadId, node), ExecutionStatuses.Exit));
@@ -164,9 +175,15 @@ public class GraphProcessInstance : IProcessInstance
         _executionQueue.Enqueue(new(new ElementNodeId(threadId, node), initialState));
         while (true)
         {
-            // TODO: Use counter of awaiting elements
             if (_executionQueue.Count == 0)
             {
+                if (_awaitingSubscriptions == 0)
+                {
+                    // Property _awaitingSubscriptions uses to handle correct process stop
+                    // If nothing await process should to stop execution
+                    break;
+                }
+
                 // Wait new queue elements with TaskCompletionSource signal
                 _queueTaskCompletionSource = new TaskCompletionSource();
                 await _queueTaskCompletionSource.Task;
@@ -174,6 +191,7 @@ public class GraphProcessInstance : IProcessInstance
             await DequeueAndExecuteAsync();
         }
     }
+
     private async Task DequeueAndExecuteAsync(CancellationToken cancellationToken = default)
     {
         var tuple = _executionQueue.Dequeue();
@@ -187,8 +205,10 @@ public class GraphProcessInstance : IProcessInstance
         }
         if (state == ExecutionStatuses.Break)
         {
+            // Increase counter to handle correct process stop
+            _awaitingSubscriptions++;
+
             // Break execution of current node
-            // TODO: Use counter for awaiting
             return;
         }
 
@@ -243,8 +263,14 @@ public class GraphProcessInstance : IProcessInstance
             (PersistType == PersistType.ElemExec && state == 0)
             || (PersistType == PersistType.ElemStateExec)
         )
+        {
+            if (_executionPersistence == null)
+            {
+                throw new Exception("Type IExecutionPersistence not present in DI container");
+            }
             await _executionPersistence.SaveExecutionStatus(ProcessId, ProcessVersionId, Id,
-                threadId,
-                elementName, state);
+            threadId,
+            elementName, state);
+        }
     }
 }

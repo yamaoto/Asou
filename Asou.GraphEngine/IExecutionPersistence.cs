@@ -6,4 +6,6 @@ public interface IExecutionPersistence
         string elementName, int state);
 
     // TODO: Prepare feature for persistence of parameters
+
+    // TODO: Get stored thread,element and state for restoring execution
 }
