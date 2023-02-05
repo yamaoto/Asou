@@ -22,7 +22,7 @@ public class BindingTest
         var testElement = new TestElement();
         var parameterDelegateFactory = new ParameterDelegateFactory();
         parameterDelegateFactory.CreateDelegates<TestElement, string>("ParameterA");
-        var processMachine = new ProcessRuntime(parameterDelegateFactory, nameof(FormatTest))
+        var processMachine = new ProcessRuntime(parameterDelegateFactory, nameof(BindingTest))
         {
             ComponentFactory = (_, _) => testElement
         };
@@ -46,7 +46,7 @@ public class BindingTest
         var testElement = new TestElement();
         var parameterDelegateFactory = new ParameterDelegateFactory();
         parameterDelegateFactory.CreateDelegates<TestElement, string>("ParameterA");
-        var processMachine = new ProcessRuntime(parameterDelegateFactory, nameof(FormatTest))
+        var processMachine = new ProcessRuntime(parameterDelegateFactory, nameof(BindingTest))
         {
             ComponentFactory = (name, objectName) => testElement
         };
