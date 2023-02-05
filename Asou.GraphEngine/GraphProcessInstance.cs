@@ -15,7 +15,7 @@ public class GraphProcessInstance : IProcessInstance
     private readonly Dictionary<Guid, Guid> _threads = new();
     private readonly Dictionary<string, int> _nodeMap = new();
     private Queue<Tuple<ElementNodeId, int>> _executionQueue = new();
-    private TaskCompletionSource _queueTaskCompletionSource;
+    private TaskCompletionSource? _queueTaskCompletionSource;
     private int _awaitingSubscriptions;
 
 
@@ -101,7 +101,10 @@ public class GraphProcessInstance : IProcessInstance
 
             // Resume execution
             _executionQueue.Enqueue(new(new ElementNodeId(threadId, node), ExecutionStatuses.Exit));
-            _queueTaskCompletionSource.SetResult();
+            if (_queueTaskCompletionSource != null)
+            {
+                _queueTaskCompletionSource.SetResult();
+            }
         }
 
         if (eventSubscriptionType == EventSubscriptionType.EventHandler)
