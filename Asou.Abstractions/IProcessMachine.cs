@@ -12,7 +12,7 @@ public interface IProcessMachine
     /// <summary>Gets the components of the process.</summary>
     /// <returns>The components of the process.</returns>
     IReadOnlyDictionary<string, BaseElement> Components { get; }
-    
+
     /// <summary>Gets the parameters of the process.</summary>
     /// <returns>The parameters of the process.</returns>
     ProcessParameters Parameters { get; }

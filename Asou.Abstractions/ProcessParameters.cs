@@ -8,7 +8,7 @@ public class ProcessParameters : IReadOnlyDictionary<string, object?>
     private readonly Dictionary<string, object?> _innerDictionary;
 
     /// <summary>
-    /// Constructor for ProcessParameters class
+    ///     Constructor for ProcessParameters class
     /// </summary>
     public ProcessParameters()
     {

@@ -4,7 +4,8 @@ namespace Asou.Core;
 
 public record EventSubscriptionModel(
     Guid Id,
-    Guid processInstanceId,
+    Guid ProcessInstanceId,
+    Guid ThreadId,
     string ElementName,
     string Source,
     string Type,

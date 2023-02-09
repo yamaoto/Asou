@@ -65,7 +65,7 @@ public class BindingTest
 
     private class TestElement : BaseElement
     {
-        public string ParameterA { get; set; } = "HELLO";
+        public string ParameterA { get; } = "HELLO";
 
         public override Task ExecuteAsync(CancellationToken cancellationToken = default)
         {

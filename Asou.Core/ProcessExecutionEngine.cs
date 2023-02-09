@@ -6,6 +6,7 @@ namespace Asou.Core;
 public class ProcessExecutionEngine
 {
     private readonly IProcessExecutionDriver _driver;
+    private readonly Dictionary<Guid, IProcessInstance> _instances = new();
     private readonly ILogger<ProcessExecutionEngine> _logger;
     private readonly IProcessContractRepository _processContractRepository;
     private readonly IProcessInstanceRepository _processInstanceRepository;
@@ -24,8 +25,15 @@ public class ProcessExecutionEngine
     }
 
     // TODO: Resume execution after restart
-    // TODO: Handle events: send events to process
-    // TODO: Handle events: resume awaiter
+    public async Task HandleEventAsync(EventSubscriptionModel subscription, EventRepresentation eventRepresentation,
+        CancellationToken cancellationToken = default)
+    {
+        // Check if instance is active
+        if (!_instances.TryGetValue(subscription.ProcessInstanceId, out var instance))
+            // TODO: Resume instance if not present
+            throw new NotImplementedException();
+        await instance.HandleSubscriptionEventAsync(subscription, eventRepresentation, cancellationToken);
+    }
 
     public async Task<ProcessParameters> ExecuteAsync(Guid processContractId, ProcessParameters parameters,
         CancellationToken cancellationToken = default)
@@ -54,6 +62,7 @@ public class ProcessExecutionEngine
         CancellationToken cancellationToken = default)
     {
         var instance = await _driver.CreateInstanceAsync(processContract, cancellationToken);
+        _instances[instance.Id] = instance;
         var state = ProcessInstanceGlobalStates.Created;
         if (instance.PersistType != PersistType.No)
             await _processInstanceRepository.CreateInstance(instance.Id,

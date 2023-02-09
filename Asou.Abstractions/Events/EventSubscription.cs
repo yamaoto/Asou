@@ -8,5 +8,4 @@ public record EventSubscription
     EventSubscriptionType EventSubscriptionType
 )
 {
-
 }

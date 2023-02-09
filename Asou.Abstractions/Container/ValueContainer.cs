@@ -4,7 +4,7 @@ namespace Asou.Abstractions.Container;
 
 /// <summary>A container for a value.</summary>
 /// <remarks>
-/// This class is used to store the value of a property in an object.
+///     This class is used to store the value of a property in an object.
 /// </remarks>
 public class ValueContainer : IContainer
 {
@@ -14,7 +14,10 @@ public class ValueContainer : IContainer
     /// <summary>The type of the object.</summary>
     public AsouTypes Type { get; init; }
 
-    /// <summary>The type of the object, used only when <see cref="AsouTypes" /> is <see cref="AsouTypes.Object" /> or  <see cref="AsouTypes.ObjectLink" /> .</summary>
+    /// <summary>
+    ///     The type of the object, used only when <see cref="AsouTypes" /> is <see cref="AsouTypes.Object" /> or
+    ///     <see cref="AsouTypes.ObjectLink" /> .
+    /// </summary>
     public required string ObjectType { get; init; }
 
     /// <summary>Gets the value from container.</summary>

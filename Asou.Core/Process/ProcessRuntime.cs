@@ -76,7 +76,8 @@ public sealed class ProcessRuntime : IProcessMachineCommands
         await element.AfterExecuteAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<EventSubscription>> ConfigureAwaiterAsync(string elementName, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<EventSubscription>> ConfigureAwaiterAsync(string elementName,
+        CancellationToken cancellationToken = default)
     {
         if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
 
@@ -85,7 +86,8 @@ public sealed class ProcessRuntime : IProcessMachineCommands
         return subscriptions;
     }
 
-    public async Task<bool> ValidateSubscriptionEventAsync(string elementName, EventRepresentation eventRepresentation, CancellationToken cancellationToken = default)
+    public async Task<bool> ValidateSubscriptionEventAsync(string elementName, EventRepresentation eventRepresentation,
+        CancellationToken cancellationToken = default)
     {
         if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
 

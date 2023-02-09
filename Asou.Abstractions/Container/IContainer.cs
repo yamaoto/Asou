@@ -6,11 +6,13 @@ namespace Asou.Abstractions.Container;
 /// </remarks>
 public interface IContainer
 {
-    
     /// <summary>The type of the object.</summary>
     AsouTypes Type { get; init; }
 
-    /// <summary>The type of the object, used only when <see cref="AsouTypes" /> is <see cref="AsouTypes.Object" /> or  <see cref="AsouTypes.ObjectLink" /> .</summary>
+    /// <summary>
+    ///     The type of the object, used only when <see cref="AsouTypes" /> is <see cref="AsouTypes.Object" /> or
+    ///     <see cref="AsouTypes.ObjectLink" /> .
+    /// </summary>
     string ObjectType { get; init; }
 
     /// <summary>Gets the value from container.</summary>
