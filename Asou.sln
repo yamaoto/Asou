@@ -1,5 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+#
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asou.Core", "Asou.Core\Asou.Core.csproj", "{217DE152-B18C-40B8-AA99-CA9AE2FA7A08}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asou.Core.Tests", "tests\Asou.Core.Tests\Asou.Core.Tests.csproj", "{5E206FE7-BE43-4816-A963-5FDDFE46FCFC}"
@@ -10,13 +11,27 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asou.ContextCall", "Asou.Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asou.Abstractions", "Asou.Abstractions\Asou.Abstractions.csproj", "{2E707723-05E9-4721-822C-EBB25D552E3C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asou.ByteCodeEngine", "Asou.ByteCodeEngine\Asou.ByteCodeEngine.csproj", "{1E014BEC-C119-4266-B383-C67F27CFD506}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asou.GraphEngine", "Asou.GraphEngine\Asou.GraphEngine.csproj", "{B2F2E03E-0DDB-4029-ACB1-62B63C4CBB4F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication1", "Samples\WebApplication1\WebApplication1.csproj", "{E8520305-4EBD-4B57-B486-FAFE458887CC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asou.GraphEngine.CodeContractStorage", "Asou.GraphEngine.CodeContractStorage\Asou.GraphEngine.CodeContractStorage.csproj", "{A714BF6D-4484-4D90-A5CD-001C9B17F0D3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asou.EfCore", "Asou.EfCore\Asou.EfCore.csproj", "{D9AEEAF9-BE71-4372-9AAE-E8F2DDA64211}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8514C028-213D-48F6-AFBE-B1AD87CC4C87}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+		CHANGELOG.md = CHANGELOG.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{77D7C2E5-7609-49BD-B46F-3C94D3ED8B22}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication1.FunctionalTests", "tests\WebApplication1.FunctionalTests\WebApplication1.FunctionalTests.csproj", "{487A5937-191E-47F4-9CB4-B52360FAD38E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asou.InMemoryEventDriver", "Asou.InMemoryEventDriver\Asou.InMemoryEventDriver.csproj", "{213E36AF-8008-4C91-9275-C6261ED5FC67}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asou", "Asou\Asou.csproj", "{5F4FEB04-78F6-4A67-A399-51B27AD1A7AC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,10 +59,6 @@ Global
 		{2E707723-05E9-4721-822C-EBB25D552E3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E707723-05E9-4721-822C-EBB25D552E3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E707723-05E9-4721-822C-EBB25D552E3C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1E014BEC-C119-4266-B383-C67F27CFD506}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1E014BEC-C119-4266-B383-C67F27CFD506}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1E014BEC-C119-4266-B383-C67F27CFD506}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1E014BEC-C119-4266-B383-C67F27CFD506}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B2F2E03E-0DDB-4029-ACB1-62B63C4CBB4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B2F2E03E-0DDB-4029-ACB1-62B63C4CBB4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B2F2E03E-0DDB-4029-ACB1-62B63C4CBB4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -60,5 +71,25 @@ Global
 		{A714BF6D-4484-4D90-A5CD-001C9B17F0D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A714BF6D-4484-4D90-A5CD-001C9B17F0D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A714BF6D-4484-4D90-A5CD-001C9B17F0D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9AEEAF9-BE71-4372-9AAE-E8F2DDA64211}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9AEEAF9-BE71-4372-9AAE-E8F2DDA64211}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9AEEAF9-BE71-4372-9AAE-E8F2DDA64211}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9AEEAF9-BE71-4372-9AAE-E8F2DDA64211}.Release|Any CPU.Build.0 = Release|Any CPU
+		{487A5937-191E-47F4-9CB4-B52360FAD38E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{487A5937-191E-47F4-9CB4-B52360FAD38E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{487A5937-191E-47F4-9CB4-B52360FAD38E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{487A5937-191E-47F4-9CB4-B52360FAD38E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{213E36AF-8008-4C91-9275-C6261ED5FC67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{213E36AF-8008-4C91-9275-C6261ED5FC67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{213E36AF-8008-4C91-9275-C6261ED5FC67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{213E36AF-8008-4C91-9275-C6261ED5FC67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F4FEB04-78F6-4A67-A399-51B27AD1A7AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F4FEB04-78F6-4A67-A399-51B27AD1A7AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F4FEB04-78F6-4A67-A399-51B27AD1A7AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F4FEB04-78F6-4A67-A399-51B27AD1A7AC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5E206FE7-BE43-4816-A963-5FDDFE46FCFC} = {77D7C2E5-7609-49BD-B46F-3C94D3ED8B22}
+		{487A5937-191E-47F4-9CB4-B52360FAD38E} = {77D7C2E5-7609-49BD-B46F-3C94D3ED8B22}
 	EndGlobalSection
 EndGlobal

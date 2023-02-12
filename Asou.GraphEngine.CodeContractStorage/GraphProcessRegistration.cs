@@ -8,7 +8,8 @@ public class GraphProcessRegistration : IGraphProcessRegistration
     private readonly IGraphProcessContractRepository _processContractRepository;
 
     public GraphProcessRegistration(
-        IGraphProcessContractRepository processContractRepository, IParameterDelegateFactory parameterDelegateFactory)
+        IGraphProcessContractRepository processContractRepository,
+        IParameterDelegateFactory parameterDelegateFactory)
     {
         _processContractRepository = processContractRepository;
         _parameterDelegateFactory = parameterDelegateFactory;
@@ -16,9 +17,14 @@ public class GraphProcessRegistration : IGraphProcessRegistration
 
     public void RegisterFlow(GraphProcessContract graphProcessContract)
     {
+        // Prepare element parameters getter and setter delegates
         foreach (var (_, node) in graphProcessContract.Nodes)
-        foreach (var parameter in node.Parameters)
-            _parameterDelegateFactory.CreateDelegates(node.ElementType, parameter.Name);
+        {
+            foreach (var parameter in node.Parameters)
+            {
+                _parameterDelegateFactory.CreateDelegates(node.ElementType, parameter.Name);
+            }
+        }
 
         _processContractRepository.AddProcessContract(graphProcessContract);
     }

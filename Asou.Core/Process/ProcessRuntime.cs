@@ -1,16 +1,17 @@
 using System.Runtime.CompilerServices;
 using Asou.Abstractions;
+using Asou.Abstractions.Events;
 using Asou.Abstractions.ExecutionElements;
+using Asou.Abstractions.Process;
 using Asou.Core.Process.Binding;
 using Asou.Core.Process.Delegates;
 
 namespace Asou.Core.Process;
 
-public sealed class ProcessRuntime : IProcessMachineCommands
+public sealed class ProcessRuntime : IProcessRuntime
 {
-    private readonly Dictionary<string, BaseElement> _components = new();
+    private readonly Dictionary<Guid, BaseElement> _components = new();
     private readonly IParameterDelegateFactory _parameterDelegateFactory;
-    private readonly Dictionary<string, Action> _procedures = new();
 
     public ProcessRuntime(
         IParameterDelegateFactory parameterDelegateFactory,
@@ -22,19 +23,17 @@ public sealed class ProcessRuntime : IProcessMachineCommands
 
     public required ComponentFactoryMethod ComponentFactory { get; init; }
 
-    public IReadOnlyDictionary<string, BaseElement> Components => _components;
+    public IReadOnlyDictionary<Guid, BaseElement> Components => _components;
     public ProcessParameters Parameters { get; } = new();
-
-    public IReadOnlyDictionary<string, Action> Procedures => _procedures;
 
     public string Name { get; init; }
 
     #region Commands
 
-    public void CreateComponent(string componentName, string name)
+    public void CreateComponent(Guid componentId, Type componentType)
     {
-        var component = ComponentFactory(componentName, componentName);
-        _components[componentName] = component;
+        var component = ComponentFactory(componentType);
+        _components[componentId] = component;
     }
 
     public void LetParameter(string parameterName)
@@ -52,61 +51,87 @@ public sealed class ProcessRuntime : IProcessMachineCommands
         Parameters[parameterName] = parameterValue;
     }
 
-    public void CallProcedure(string procedureName)
+    public async Task ExecuteElementAsync(Guid elementId, CancellationToken cancellationToken = default)
     {
-        if (!Procedures.ContainsKey(procedureName)) throw new InvalidOperationException();
+        if (!Components.ContainsKey(elementId))
+        {
+            throw new InvalidOperationException();
+        }
 
-        Procedures[procedureName]();
-    }
-
-    public async Task ExecuteElementAsync(string elementName, CancellationToken cancellationToken = default)
-    {
-        if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
-
-        var element = Components[elementName];
+        var element = Components[elementId];
         await element.ExecuteAsync(cancellationToken);
     }
 
-    public async Task AfterExecuteElementAsync(string elementName, CancellationToken cancellationToken = default)
+    public async Task AfterExecutionElementAsync(Guid elementId, CancellationToken cancellationToken = default)
     {
-        if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
+        if (!Components.ContainsKey(elementId))
+        {
+            throw new InvalidOperationException();
+        }
 
-        var element = Unsafe.As<IAfterExecute>(Components[elementName]);
-        await element.AfterExecuteAsync(cancellationToken);
+        var element = Unsafe.As<IAfterExecution>(Components[elementId]);
+        await element.AfterExecutionAsync(cancellationToken);
     }
 
-    public async Task ConfigureAwaiterAsync(string elementName, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<EventSubscription>> ConfigureAsynchronousResumeAsync(Guid elementId,
+        CancellationToken cancellationToken = default)
     {
-        if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
+        if (!Components.ContainsKey(elementId))
+        {
+            throw new InvalidOperationException();
+        }
 
-        var element = Unsafe.As<IAsyncExecutionElement>(Components[elementName]);
-        await element.ConfigureAwaiterAsync(cancellationToken);
+        var element = Unsafe.As<IAsynchronousResume>(Components[elementId]);
+        var subscriptions = await element.ConfigureSubscriptionsAsync(cancellationToken);
+        return subscriptions;
     }
 
-    public void SetElementParameter(string elementName, string parameterName, object value)
+    public async Task<bool> ValidateSubscriptionEventAsync(Guid elementId, EventRepresentation eventRepresentation,
+        CancellationToken cancellationToken = default)
     {
-        if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
+        if (!Components.ContainsKey(elementId))
+        {
+            throw new InvalidOperationException();
+        }
 
-        _parameterDelegateFactory.SetParameter(Components[elementName].GetType(),
-            Components[elementName],
+        var element = Unsafe.As<IAsynchronousResume>(Components[elementId]);
+        var result = await element.ValidateSubscriptionEventAsync(eventRepresentation, cancellationToken);
+        return result;
+    }
+
+    public void SetElementParameter(Guid elementId, string parameterName, object value)
+    {
+        if (!Components.ContainsKey(elementId))
+        {
+            throw new InvalidOperationException();
+        }
+
+        _parameterDelegateFactory.SetParameter(Components[elementId].GetType(),
+            Components[elementId],
             parameterName, value);
     }
 
-    public object GetElementParameter(string elementName, string parameterName)
+    public object GetElementParameter(Guid elementId, string parameterName)
     {
-        if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
+        if (!Components.ContainsKey(elementId))
+        {
+            throw new InvalidOperationException();
+        }
 
-        return _parameterDelegateFactory.GetParameter(Components[elementName].GetType(),
-            Components[elementName],
+        return _parameterDelegateFactory.GetParameter(Components[elementId].GetType(),
+            Components[elementId],
             parameterName);
     }
 
-    public object GetElementParameter<T>(Type elementType, string elementName, string parameterName) where T : class
+    public object GetElementParameter<T>(Type elementType, Guid elementId, string parameterName) where T : class
     {
-        if (!Components.ContainsKey(elementName)) throw new InvalidOperationException();
+        if (!Components.ContainsKey(elementId))
+        {
+            throw new InvalidOperationException();
+        }
 
         var getter = _parameterDelegateFactory.GetParameterGetter<T>(elementType, parameterName);
-        return getter.Invoke(Unsafe.As<T>(Components[elementName]));
+        return getter.Invoke(Unsafe.As<T>(Components[elementId]));
     }
 
     #endregion

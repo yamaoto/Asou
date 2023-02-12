@@ -9,23 +9,32 @@ public class ParameterDelegateFactory : IParameterDelegateFactory
     public Func<object, TPropertyType> GetParameterGetter<TPropertyType>(Type elementType, string parameterName)
     {
         var key = elementType.Name.GetHashCode() * 17 + parameterName.GetHashCode() * 17;
-        if (!_delegates.TryGetValue(key, out var value)) throw new Exception("Delegate not found");
+        if (!_delegates.TryGetValue(key, out var value))
+        {
+            throw new Exception("Delegate not found");
+        }
 
-        return Unsafe.As<Func<object, TPropertyType>>(value!.Item1);
+        return Unsafe.As<Func<object, TPropertyType>>(value.Item1);
     }
 
     public Action<object, TPropertyType> GetParameterSetter<TPropertyType>(Type elementType, string parameterName)
     {
         var key = elementType.Name.GetHashCode() * 17 + parameterName.GetHashCode() * 17;
-        if (!_delegates.TryGetValue(key, out var value)) throw new Exception("Delegate not found");
+        if (!_delegates.TryGetValue(key, out var value))
+        {
+            throw new Exception("Delegate not found");
+        }
 
-        return Unsafe.As<Action<object, TPropertyType>>(value!.Item2);
+        return Unsafe.As<Action<object, TPropertyType>>(value.Item2);
     }
 
     public void SetParameter(Type elementType, object target, string parameterName, object value)
     {
         var key = elementType.Name.GetHashCode() * 17 + parameterName.GetHashCode() * 17;
-        if (!_delegates.TryGetValue(key, out var pair)) throw new Exception("Delegate not found");
+        if (!_delegates.TryGetValue(key, out var pair))
+        {
+            throw new Exception("Delegate not found");
+        }
 
         Unsafe.As<Action<object, object>>(pair.Item2).Invoke(target, value);
     }
@@ -33,7 +42,10 @@ public class ParameterDelegateFactory : IParameterDelegateFactory
     public object GetParameter(Type elementType, object target, string parameterName)
     {
         var key = elementType.Name.GetHashCode() * 17 + parameterName.GetHashCode() * 17;
-        if (!_delegates.TryGetValue(key, out var pair)) throw new Exception("Delegate not found");
+        if (!_delegates.TryGetValue(key, out var pair))
+        {
+            throw new Exception("Delegate not found");
+        }
 
         return Unsafe.As<Func<object, object>>(pair.Item1).Invoke(target);
     }

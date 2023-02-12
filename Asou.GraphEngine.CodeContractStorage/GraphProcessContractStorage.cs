@@ -8,7 +8,9 @@ public class GraphProcessContractStorage : Dictionary<Guid, GraphProcessVersionS
     public void Add(GraphProcessContract graphProcessContract)
     {
         if (!ContainsKey(graphProcessContract.ProcessContract.ProcessContractId))
+        {
             Add(graphProcessContract.ProcessContract.ProcessContractId, new GraphProcessVersionStorage());
+        }
 
         _nameMap[graphProcessContract.ProcessContract.Name] =
             graphProcessContract.ProcessContract.ProcessContractId;

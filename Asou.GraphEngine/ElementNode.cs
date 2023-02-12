@@ -2,14 +2,16 @@ using System.Diagnostics;
 
 namespace Asou.GraphEngine;
 
-[DebuggerDisplay("ElementNode = {Name}")]
+[DebuggerDisplay("ElementNode = {DisplayName}")]
 public sealed class ElementNode
 {
-    public required Type Type { get; init; }
-    public required string Name { get; init; }
-    public required bool IsShouldAwait { get; init; }
-    public required bool IsShouldCallAfterExecute { get; init; }
+    public Guid Id { get; init; }
+    public required Type ElementType { get; init; }
+    public required string DisplayName { get; init; }
     public required List<IElementNodeConnection> Connections { get; init; }
+    public required List<ParameterPersistenceInfo> Parameters { get; init; }
+
     public required bool IsInclusiveGate { get; init; }
-    public List<ParameterPersistenceInfo>? Parameters { get; set; }
+    public required bool UseAsynchronousResume { get; init; }
+    public required bool UseAfterExecution { get; init; }
 }

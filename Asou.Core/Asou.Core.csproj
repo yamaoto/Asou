@@ -1,24 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>net7.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="HashDepot" Version="3.1.0"/>
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0"/>
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0"/>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0"/>
+  </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="Abstractions"/>
-    </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Abstractions"/>
+  </ItemGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\Asou.Abstractions\Asou.Abstractions.csproj"/>
-        <ProjectReference Include="..\Asou.ByteCodeEngine\Asou.ByteCodeEngine.csproj"/>
-        <ProjectReference Include="..\Asou.ContextCall\Asou.ContextCall.csproj"/>
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Asou.Abstractions\Asou.Abstractions.csproj"/>
+    <ProjectReference Include="..\Asou.ContextCall\Asou.ContextCall.csproj"/>
+  </ItemGroup>
 
 </Project>
