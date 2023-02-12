@@ -1,4 +1,4 @@
-using Asou.Core;
+using Asou.Abstractions.Repositories;
 
 namespace Asou.EfCore;
 

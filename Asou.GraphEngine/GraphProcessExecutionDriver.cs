@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
-using Asou.Abstractions;
-using Asou.Core;
+using Asou.Abstractions.Process;
 
 namespace Asou.GraphEngine;
 
@@ -12,11 +11,6 @@ public class GraphProcessExecutionDriver : IProcessExecutionDriver
         IProcessFactory processFactory)
     {
         _processFactory = processFactory;
-    }
-
-    public Task InitializeAsync()
-    {
-        throw new NotImplementedException();
     }
 
     public async Task<IProcessInstance> CreateInstanceAsync(ProcessContract processContract,

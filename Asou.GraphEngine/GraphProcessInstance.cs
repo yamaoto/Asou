@@ -1,7 +1,6 @@
-using Asou.Abstractions;
 using Asou.Abstractions.Events;
 using Asou.Abstractions.ExecutionElements;
-using Asou.Core;
+using Asou.Abstractions.Process;
 using Asou.Core.Process;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -45,7 +44,7 @@ public class GraphProcessInstance : IProcessInstance
 
     public Guid Id { get; init; }
 
-    public ProcessRuntime ProcessRuntime { get; }
+    public IProcessRuntime ProcessRuntime { get; }
 
 
     /// <summary>
@@ -106,7 +105,7 @@ public class GraphProcessInstance : IProcessInstance
     }
 
     /// <summary>
-    /// Resume execution after system restart
+    ///     Resume execution after system restart
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>

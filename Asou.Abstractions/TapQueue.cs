@@ -1,4 +1,4 @@
-namespace Asou.Core;
+namespace Asou.Abstractions;
 
 /// <summary>
 ///     Queue with TAP await support

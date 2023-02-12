@@ -1,8 +1,9 @@
-using Asou.Abstractions;
+using Asou.Abstractions.Events;
+using Asou.Abstractions.Repositories;
 
 namespace Asou.Core;
 
-public class SubscriptionManager
+public class SubscriptionManager : ISubscriptionManager
 {
     private readonly ProcessExecutionEngine _processExecutionEngine;
     private readonly ISubscriptionPersistantRepository _subscriptionRepository;

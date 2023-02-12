@@ -1,6 +1,6 @@
 using Asou.Abstractions.Events;
 
-namespace Asou.Abstractions;
+namespace Asou.Abstractions.Process;
 
 /// <summary>Processes commands from the process state machine.</summary>
 /// <remarks>This interface is by process engines to communicate with process state machine.</remarks>
@@ -63,4 +63,15 @@ public interface IProcessMachineCommands : IProcessMachine
     /// <param name="parameterName">The name of the parameter.</param>
     /// <returns>The value of the element parameter.</returns>
     object GetElementParameter<T>(Type elementType, Guid elementId, string parameterName) where T : class;
+
+    /// <summary>
+    ///     Validate asynchronous resume event applicability on a specific element
+    /// </summary>
+    /// <param name="elementId">id of the element.</param>
+    /// <param name="eventRepresentation">Event representation</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task that represents the operation.</returns>
+    /// <returns></returns>
+    Task<bool> ValidateSubscriptionEventAsync(Guid elementId, EventRepresentation eventRepresentation,
+        CancellationToken cancellationToken = default);
 }

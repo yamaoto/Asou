@@ -1,19 +1,19 @@
 using Asou.Abstractions.ExecutionElements;
 
-namespace Asou.Abstractions;
+namespace Asou.Abstractions.Process;
 
 /// <summary>A process state machine.</summary>
 public interface IProcessMachine
 {
     /// <summary>Gets or init the name of the process.</summary>
     /// <value>The name of the process.</value>
-    string Name { get; init; }
+    public string Name { get; init; }
 
     /// <summary>Gets the components of the process.</summary>
     /// <returns>The components of the process.</returns>
-    IReadOnlyDictionary<Guid, BaseElement> Components { get; }
+    public IReadOnlyDictionary<Guid, BaseElement> Components { get; }
 
     /// <summary>Gets the parameters of the process.</summary>
     /// <returns>The parameters of the process.</returns>
-    ProcessParameters Parameters { get; }
+    public ProcessParameters Parameters { get; }
 }

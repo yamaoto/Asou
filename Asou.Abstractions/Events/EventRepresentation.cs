@@ -1,4 +1,4 @@
-namespace Asou.Abstractions;
+namespace Asou.Abstractions.Events;
 
 public record EventRepresentation(
     string Id,

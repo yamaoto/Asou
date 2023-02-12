@@ -1,11 +1,7 @@
-using Asou.Abstractions;
-
-namespace Asou.Core;
+namespace Asou.Abstractions.Process;
 
 public interface IProcessExecutionDriver
 {
-    Task InitializeAsync();
-
     Task<IProcessInstance> CreateInstanceAsync(ProcessContract processContract,
         CancellationToken cancellationToken = default);
 

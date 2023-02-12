@@ -8,7 +8,8 @@ public class GraphProcessRegistration : IGraphProcessRegistration
     private readonly IGraphProcessContractRepository _processContractRepository;
 
     public GraphProcessRegistration(
-        IGraphProcessContractRepository processContractRepository, IParameterDelegateFactory parameterDelegateFactory)
+        IGraphProcessContractRepository processContractRepository,
+        IParameterDelegateFactory parameterDelegateFactory)
     {
         _processContractRepository = processContractRepository;
         _parameterDelegateFactory = parameterDelegateFactory;

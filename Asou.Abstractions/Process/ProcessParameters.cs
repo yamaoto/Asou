@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace Asou.Abstractions;
+namespace Asou.Abstractions.Process;
 
 /// <summary>A collection of parameters to be passed to a process.</summary>
 public class ProcessParameters : IReadOnlyDictionary<string, object?>

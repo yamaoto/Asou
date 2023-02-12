@@ -1,7 +1,7 @@
-using Asou.Abstractions;
 using Asou.Abstractions.Events;
+using Asou.Abstractions.Repositories;
 
-namespace Asou.Core;
+namespace Asou.InMemoryEventDriver;
 
 public class InMemoryEventDriver : IEventDriver
 {

@@ -1,4 +1,7 @@
 using Asou.Abstractions;
+using Asou.Abstractions.Events;
+using Asou.Abstractions.Process;
+using Asou.Abstractions.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace Asou.Core;
@@ -6,6 +9,7 @@ namespace Asou.Core;
 public class ProcessExecutionEngine
 {
     private readonly IProcessExecutionDriver _driver;
+    private readonly IEnumerable<IInitializeHook> _initializers;
 
     // TODO: Handle instance deletion after execution done in _instances
     private readonly Dictionary<Guid, IProcessInstance> _instances = new();
@@ -14,12 +18,14 @@ public class ProcessExecutionEngine
     private readonly IProcessInstanceRepository _processInstanceRepository;
 
     public ProcessExecutionEngine(
+        IEnumerable<IInitializeHook> initializers,
         IProcessExecutionDriver driver,
         IProcessContractRepository processContractRepository,
         IProcessInstanceRepository processInstanceRepository,
         ILogger<ProcessExecutionEngine> logger
     )
     {
+        _initializers = initializers;
         _driver = driver;
         _processContractRepository = processContractRepository;
         _processInstanceRepository = processInstanceRepository;
@@ -121,6 +127,15 @@ public class ProcessExecutionEngine
                     instance.ProcessContract.ProcessVersionId, instance.ProcessContract.VersionNumber,
                     state);
             }
+        }
+    }
+
+    public async Task InitializeAsync()
+    {
+        foreach (var initializer in _initializers)
+        {
+            // TODO: Handle initialize with conditions to control enabled / disabled
+            await initializer.Initialize();
         }
     }
 }

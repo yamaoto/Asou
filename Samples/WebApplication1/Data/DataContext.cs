@@ -1,4 +1,3 @@
-using Asou.EfCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace WebApplication1.Data;

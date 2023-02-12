@@ -1,5 +1,5 @@
 ﻿using Asou.Abstractions.ExecutionElements;
-using Asou.Core;
+using Asou.Abstractions.Process;
 using Asou.Core.Process;
 using Asou.Core.Process.Binding;
 using Microsoft.Extensions.DependencyInjection;

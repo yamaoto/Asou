@@ -1,7 +1,4 @@
-using Asou.Abstractions;
-using Asou.Abstractions.Events;
-
-namespace Asou.Core;
+namespace Asou.Abstractions.Events;
 
 // TODO: Mass transit inheritor
 public interface IEventDriver

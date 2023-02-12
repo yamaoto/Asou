@@ -1,7 +1,5 @@
-using Asou.Abstractions;
 using Asou.Abstractions.Events;
 using Asou.Abstractions.ExecutionElements;
-using Asou.Core;
 
 namespace WebApplication1.SampleProcess;
 
@@ -30,13 +28,16 @@ public class AsynchronousResumeStep : BaseElement, IAfterExecution, IAsynchronou
     }
 
     /// <summary>
-    /// Pass all events
+    ///     Pass all events
     /// </summary>
     /// <param name="eventRepresentation"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public Task<bool> ValidateSubscriptionEventAsync(EventRepresentation eventRepresentation,
-        CancellationToken cancellationToken = default) => Task.FromResult(true);
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(true);
+    }
 
     public override Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
@@ -48,7 +49,8 @@ public class AsynchronousResumeStep : BaseElement, IAfterExecution, IAsynchronou
             await Task.Delay(500, cts.Token);
             Console.WriteLine("AsynchronousResumeStep 2 {0}", DateTime.Now);
             await _eventDriver.PublishAsync(
-                new EventRepresentation(Guid.NewGuid().ToString(), "urn:WebApplication1.SampleProcess.AsynchronousResumeStep",
+                new EventRepresentation(Guid.NewGuid().ToString(),
+                    "urn:WebApplication1.SampleProcess.AsynchronousResumeStep",
                     "MyEventTpe", "MyEventSubject", DateTime.Now, null), cts.Token);
         }, cts.Token);
         return Task.CompletedTask;

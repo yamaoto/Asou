@@ -2,12 +2,13 @@ using System.Runtime.CompilerServices;
 using Asou.Abstractions;
 using Asou.Abstractions.Events;
 using Asou.Abstractions.ExecutionElements;
+using Asou.Abstractions.Process;
 using Asou.Core.Process.Binding;
 using Asou.Core.Process.Delegates;
 
 namespace Asou.Core.Process;
 
-public sealed class ProcessRuntime : IProcessMachineCommands
+public sealed class ProcessRuntime : IProcessRuntime
 {
     private readonly Dictionary<Guid, BaseElement> _components = new();
     private readonly IParameterDelegateFactory _parameterDelegateFactory;

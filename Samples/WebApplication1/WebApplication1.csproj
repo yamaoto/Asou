@@ -8,15 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Asou.Core\Asou.Core.csproj" />
-    <ProjectReference Include="..\..\Asou.EfCore\Asou.EfCore.csproj" />
-    <ProjectReference Include="..\..\Asou.GraphEngine.CodeContractStorage\Asou.GraphEngine.CodeContractStorage.csproj" />
-    <ProjectReference Include="..\..\Asou.GraphEngine\Asou.GraphEngine.csproj" />
+    <ProjectReference Include="..\..\Asou\Asou.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.2" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.2"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.2"/>
   </ItemGroup>
 
 </Project>

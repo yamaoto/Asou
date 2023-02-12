@@ -1,11 +1,10 @@
-using Asou.Abstractions;
-using Asou.Core.Process;
+using Asou.Abstractions.Events;
 
-namespace Asou.Core;
+namespace Asou.Abstractions.Process;
 
 public interface IProcessInstance
 {
-    public ProcessRuntime ProcessRuntime { get; }
+    public IProcessRuntime ProcessRuntime { get; }
     public ProcessContract ProcessContract { get; }
     public Guid Id { get; }
     public PersistType PersistType { get; init; }

@@ -13,7 +13,7 @@ public interface IAsynchronousResume
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Check events for applicability. Use this method to check applicability with event payload
+    ///     Check events for applicability. Use this method to check applicability with event payload
     /// </summary>
     /// <param name="eventRepresentation">Event representation</param>
     /// <param name="cancellationToken">The cancellation token</param>

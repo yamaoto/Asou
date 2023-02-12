@@ -1,29 +1,35 @@
-using Asou.Core;
-using Asou.Core.Process.Binding;
-using Microsoft.Extensions.DependencyInjection;
+using Asou.Abstractions;
+using Asou.Abstractions.Process;
+using Asou.Abstractions.Repositories;
+using Asou.GraphEngine;
+using Asou.GraphEngine.CodeContractStorage;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace Asou.GraphEngine.CodeContractStorage;
+namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DependencyInjectionExtensions
 {
     public static IServiceCollection RegisterAsouGraphEngine(this IServiceCollection services)
     {
-        services.AddTransient<IGraphProcessFactory, GraphProcessFactory>();
-        services.AddTransient<IProcessFactory>(serviceProvider =>
+        services.TryAddTransient<IGraphProcessFactory, GraphProcessFactory>();
+        services.TryAddTransient<IProcessFactory>(serviceProvider =>
             serviceProvider.GetRequiredService<IGraphProcessFactory>());
-        services.AddSingleton<IGraphProcessContractRepository, GraphProcessContractRepository>();
-        services.AddSingleton<IProcessContractRepository>(serviceProvider =>
+        services.TryAddSingleton<IGraphProcessContractRepository, GraphProcessContractRepository>();
+        services.TryAddSingleton<IProcessContractRepository>(serviceProvider =>
             serviceProvider.GetRequiredService<IGraphProcessContractRepository>());
-        services.AddSingleton<IProcessExecutionDriver, GraphProcessExecutionDriver>();
-        services.AddSingleton<ProcessExecutionEngine>();
-        services.AddSingleton<IParameterDelegateFactory, ParameterDelegateFactory>();
-        services.AddTransient<IGraphProcessRegistration, GraphProcessRegistration>();
-        services.AddTransient<SubscriptionManager>();
+        services.TryAddSingleton<IProcessExecutionDriver, GraphProcessExecutionDriver>();
+        services.TryAddTransient<IGraphProcessRegistration, GraphProcessRegistration>();
 
-        // TODO: Move to another assembly
-        services.AddSingleton<InMemoryEventDriverWorker>();
-        services.AddSingleton<InMemoryEventDriverQueue>();
-        services.AddTransient<IEventDriver, InMemoryEventDriver>();
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IInitializeHook, InitializeCodeContractStorage>());
+
+        return services;
+    }
+
+    public static IServiceCollection AddAsouProcess<T>(this IServiceCollection services)
+        where T : class, IProcessDefinition
+    {
+        services.TryAddEnumerable(ServiceDescriptor.Transient<IProcessDefinition, T>());
+
         return services;
     }
 }

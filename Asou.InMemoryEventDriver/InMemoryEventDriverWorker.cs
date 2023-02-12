@@ -1,9 +1,10 @@
 using Asou.Abstractions;
+using Asou.Abstractions.Events;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Asou.Core;
+namespace Asou.InMemoryEventDriver;
 
-public class InMemoryEventDriverWorker : IDisposable
+public class InMemoryEventDriverWorker : IInitializeHook, IDisposable
 {
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly InMemoryEventDriverQueue _queue;
@@ -23,6 +24,12 @@ public class InMemoryEventDriverWorker : IDisposable
     {
         _cancellationTokenSource.Dispose();
         _workerTask?.Dispose();
+    }
+
+    public Task Initialize(CancellationToken cancellationToken = default)
+    {
+        Start();
+        return Task.CompletedTask;
     }
 
     public void Start()
@@ -52,8 +59,9 @@ public class InMemoryEventDriverWorker : IDisposable
                 // Ignore TaskCanceledException
                 return;
             }
+
             using var scope = _serviceProvider.CreateScope();
-            var subscriptionManager = scope.ServiceProvider.GetRequiredService<SubscriptionManager>();
+            var subscriptionManager = scope.ServiceProvider.GetRequiredService<ISubscriptionManager>();
             // Call event system to check subscriptions and pass event
             await subscriptionManager.ReceiveEventAsync(message, _cancellationTokenSource.Token);
         }

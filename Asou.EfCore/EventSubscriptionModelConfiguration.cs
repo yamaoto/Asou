@@ -1,4 +1,4 @@
-using Asou.Core;
+using Asou.Abstractions.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

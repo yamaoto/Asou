@@ -1,6 +1,4 @@
-using Asou.Abstractions.Events;
-
-namespace Asou.Core;
+namespace Asou.Abstractions.Events;
 
 public record EventSubscriptionModel(
     Guid Id,
