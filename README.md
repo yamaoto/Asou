@@ -37,24 +37,28 @@ include things like tasks that need to be completed, decisions that need to be m
 Describe your process
 
 ```csharp
+public class SampleProcessDefinition : IProcessDefinition
+{
+    public Guid Id => new("c380b7f4-2a76-44fc-9d5d-ecc7c105969b");
+    public Guid VersionId => new("2a8038b9-921e-4aaa-a72d-f85d6ff512e8");
+    public int Version => 1;
+    public string Name => "SampleProcess";
 
-var flowBuilder = GraphProcessContract
-    .Create(new Guid("c380b7f4-2a76-44fc-9d5d-ecc7c105969b"),
-        new Guid("2a8038b9-921e-4aaa-a72d-f85d6ff512e8"), 1, "SampleProcess")
-    .StartFrom<DoSimpleStep>()
-    .WithParameter<DoSimpleStep, string>("Parameter1",
-        instance => (string)instance.ProcessRuntime.Parameters["Parameter1"]!,
-        (instance, value) => instance.ProcessRuntime.Parameters["Parameter1"] = value)
-    .WithParameter<DoSimpleStep, string>("Parameter2",
-        setter: (instance, value) => instance.ProcessRuntime.Parameters["Parameter2"] = value)
-    .Then<AwaiterStep>()
-    .Then<ConditionalStep>();
+    public void Describe(GraphProcessContract builder)
+    {
+        builder.StartFrom<DoSimpleStep>()
+            .WithParameter<DoSimpleStep, string>("Parameter1",
+                instance => (string)instance.ProcessRuntime.Parameters["Parameter1"]!,
+                (instance, value) => instance.ProcessRuntime.Parameters["Parameter1"] = value)
+            .WithParameter<DoSimpleStep, string>("Parameter2",
+                setter: (instance, value) => instance.ProcessRuntime.Parameters["Parameter2"] = value)
+            .Then<AsynchronousResumeStep>()
+            .Then<ConditionalStep>();
 
-flowBuilder.Conditional<ConditionalStep, EndStep>("ToExit");
-flowBuilder.Conditional<ConditionalStep, DoSimpleStep>("TryAgain");
-
-var processRegistration = app.Services.GetRequiredService<IGraphProcessRegistration>();
-processRegistration.RegisterFlow(flowBuilder);
+        builder.Conditional<ConditionalStep, EndStep>("ToExit");
+        builder.Conditional<ConditionalStep, DoSimpleStep>("TryAgain");
+    }
+}
 ```
 
 Execute
