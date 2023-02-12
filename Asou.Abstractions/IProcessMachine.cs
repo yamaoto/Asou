@@ -11,13 +11,9 @@ public interface IProcessMachine
 
     /// <summary>Gets the components of the process.</summary>
     /// <returns>The components of the process.</returns>
-    IReadOnlyDictionary<string, BaseElement> Components { get; }
+    IReadOnlyDictionary<Guid, BaseElement> Components { get; }
 
     /// <summary>Gets the parameters of the process.</summary>
     /// <returns>The parameters of the process.</returns>
     ProcessParameters Parameters { get; }
-
-    /// <summary>Gets the procedures of the process.</summary>
-    /// <value>The procedures of the process.</value>
-    IReadOnlyDictionary<string, Action> Procedures { get; }
 }

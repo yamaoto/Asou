@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Asou.Core\Asou.Core.csproj"/>
+    <ProjectReference Include="..\Asou.GraphEngine\Asou.GraphEngine.csproj"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.2"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="7.0.2"/>
+  </ItemGroup>
+
+</Project>

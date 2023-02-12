@@ -7,6 +7,4 @@ public record EventRepresentation(
     string Subject,
     DateTime Time,
     string? Data
-)
-{
-}
+);

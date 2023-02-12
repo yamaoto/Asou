@@ -1,22 +1,36 @@
 ﻿# ASOU Readme
 
-ASOU is acronym for Another yet Service Orchestration Utility. 
+ASOU is acronym for Another yet Service Orchestration Utility.
 
-Introducing our open source project called ASOU, the BPMN Flow Management Tool. ASOU is designed to help developers focus on writing individual steps for their applications, rather than spending time and effort coding all step transitions, persistence, fault tolerance, etc. Our tool takes care of these difficult tasks for the developer, providing an easy-to-use and intuitive interface for managing BPMN flows. By using this tool, developers can improve code maintenance and decrease code complexity, allowing them to focus on creating high-quality and reliable applications.
+Introducing our open source project called ASOU, the BPMN Flow Management Tool. ASOU is designed to help developers
+focus on writing individual steps for their applications, rather than spending time and effort coding all step
+transitions, persistence, fault tolerance, etc. Our tool takes care of these difficult tasks for the developer,
+providing an easy-to-use and intuitive interface for managing BPMN flows. By using this tool, developers can improve
+code maintenance and decrease code complexity, allowing them to focus on creating high-quality and reliable
+applications.
 
-This project is open-source and available for anyone to use and contribute to, we are looking forward to contributions from community.
+This project is open-source and available for anyone to use and contribute to, we are looking forward to contributions
+from community.
 
-By using this tool, developers can create applications that are more maintainable, more reliable, and easier to update, which will ultimately lead to better user experiences.
+By using this tool, developers can create applications that are more maintainable, more reliable, and easier to update,
+which will ultimately lead to better user experiences.
 
 ## Engine
 
-One of the unique features of this project is its switchable engine, which allows developers to choose between different engines to suit their specific needs. For simple processes, we offer a fast graph-based engine that can be described directly in the developer's code. This means that the developer doesn't need to deal with BPMN process description storage and other complexities. 
+One of the unique features of this project is its switchable engine, which allows developers to choose between different
+engines to suit their specific needs. For simple processes, we offer a fast graph-based engine that can be described
+directly in the developer's code. This means that the developer doesn't need to deal with BPMN process description
+storage and other complexities.
 
-For more difficult and often-changing processes, we offer a fully-featured BPMN engine with a visual process editor. This allows developers to create, test, and manage complex BPMN processes with ease.
+For more difficult and often-changing processes, we offer a fully-featured BPMN engine with a visual process editor.
+This allows developers to create, test, and manage complex BPMN processes with ease.
 
 ## The basics of process
 
-Business Process Model and Notation (BPMN) is a visual language for describing business processes. It is a standardized notation that is used to model and analyze business processes in a graphical way. The BPMN flow is the sequence of activities that are performed in a business process, and how they are connected to each other. These activities can include things like tasks that need to be completed, decisions that need to be made, and events that occur.
+Business Process Model and Notation (BPMN) is a visual language for describing business processes. It is a standardized
+notation that is used to model and analyze business processes in a graphical way. The BPMN flow is the sequence of
+activities that are performed in a business process, and how they are connected to each other. These activities can
+include things like tasks that need to be completed, decisions that need to be made, and events that occur.
 
 ## Quick start
 
@@ -83,7 +97,8 @@ classDiagram
 
 ## Contribution
 
-Our open source project is maintained by a small team of developers, but we are always looking for new members to join us and help improve the project. There are many ways to contribute to the project, including:
+Our open source project is maintained by a small team of developers, but we are always looking for new members to join
+us and help improve the project. There are many ways to contribute to the project, including:
 
 - Reporting bugs and providing feedback on the tool
 - Submitting bug fixes or feature enhancements
@@ -91,25 +106,32 @@ Our open source project is maintained by a small team of developers, but we are 
 - Helping to answer questions from other users on our community forums
 - Spread the word about the project and help to increase its visibility
 
-To communicate with the team, you can open an issue in our GitHub repository. The team will review it and respond to it as soon as possible.
+To communicate with the team, you can open an issue in our GitHub repository. The team will review it and respond to it
+as soon as possible.
 
-We welcome contributions of all kinds, whether you are an experienced developer or just getting started. We believe that everyone has something valuable to contribute, and we are always happy to work with new contributors to help them get started and make their first contributions. If you have any questions or need help getting started, please don't hesitate to reach out to us. We are excited to see what you can bring to the project!
+We welcome contributions of all kinds, whether you are an experienced developer or just getting started. We believe that
+everyone has something valuable to contribute, and we are always happy to work with new contributors to help them get
+started and make their first contributions. If you have any questions or need help getting started, please don't
+hesitate to reach out to us. We are excited to see what you can bring to the project!
 
 ## Current state of project
 
-Please note that this project is currently under active development and is not yet ready for production use. While we are working hard to make it stable and functional, there may be bugs and unfinished features. There are currently no releases available and the codebase is subject to change.
+Please note that this project is currently under active development and is not yet ready for production use. While we
+are working hard to make it stable and functional, there may be bugs and unfinished features. There are currently no
+releases available and the codebase is subject to change.
 
-Features / milestones 
+Features / milestones
 
 - [x]  Conditional transitions
 - [x]  Parameter binding
-- [ ]  Event subsystem and  event awaiter support
+- [x]  Event subsystem and asynchronous resume support
 - [ ]  Process execution and data persistence on restart or failure
 - [ ]  BPMN flow designer
 - [ ]  BPMN engine. Extend Graph base engine to export BPMN flow to graph contract.
 - [ ]  ContextCall bindings
 
-If you are interested in testing out the project or would like to contribute, we welcome you to do so by checking out our development branch. We appreciate your patience as we work to improve and stabilize the project.
+If you are interested in testing out the project or would like to contribute, we welcome you to do so by checking out
+our development branch. We appreciate your patience as we work to improve and stabilize the project.
 
 # CI/CD
 

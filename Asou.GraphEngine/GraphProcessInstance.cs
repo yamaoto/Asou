@@ -11,11 +11,9 @@ public class GraphProcessInstance : IProcessInstance
 {
     private readonly IEventDriver _eventDriver;
     private readonly IExecutionPersistence? _executionPersistence;
-    private readonly Dictionary<string, int> _nodeMap = new();
+    private readonly Queue<ExecutionElement> _executionQueue = new();
     private readonly IServiceScope _serviceScope;
-    private readonly Dictionary<Guid, Guid> _threads = new();
-    private int _awaitingSubscriptions;
-    private readonly Queue<Tuple<ElementNodeId, int>> _executionQueue = new();
+    private int _asynchronousResumeCount;
     private TaskCompletionSource? _queueTaskCompletionSource;
 
 
@@ -32,8 +30,7 @@ public class GraphProcessInstance : IProcessInstance
         ProcessRuntime = processRuntime;
         _serviceScope = serviceScope;
         StartNode = startNode;
-        Nodes = nodes;
-        for (var i = 0; i < nodes.Length; i++) _nodeMap.Add(nodes[i].Name, i);
+        Nodes = nodes.ToDictionary(k => k.Id);
         _executionPersistence = serviceScope.ServiceProvider.GetService<IExecutionPersistence>();
         _eventDriver = serviceScope.ServiceProvider.GetRequiredService<IEventDriver>();
     }
@@ -41,7 +38,7 @@ public class GraphProcessInstance : IProcessInstance
     public Guid ProcessId => ProcessContract.ProcessContractId;
     public Guid ProcessVersionId => ProcessContract.ProcessVersionId;
     public ElementNode StartNode { get; init; }
-    public ElementNode[] Nodes { get; init; }
+    public Dictionary<Guid, ElementNode> Nodes { get; init; }
     public PersistType PersistType { get; init; }
 
     public ProcessContract ProcessContract { get; }
@@ -64,32 +61,43 @@ public class GraphProcessInstance : IProcessInstance
     public async Task HandleSubscriptionEventAsync(EventSubscriptionModel subscription,
         EventRepresentation eventRepresentation, CancellationToken cancellationToken = default)
     {
-        if (!_nodeMap.TryGetValue(subscription.ElementName, out var pos)) return;
-        var node = Nodes[pos];
+        if (!Nodes.TryGetValue(subscription.ElementId, out var node))
+        {
+            return;
+        }
 
-        // Handle events: resume awaiter
-        if (subscription.EventSubscriptionType == EventSubscriptionType.AsyncExecutionResumer)
+        // Handle events: asynchronous resume
+        if (subscription.EventSubscriptionType == EventSubscriptionType.AsynchronousResume)
         {
             // Validate event in node
             var result =
-                await ProcessRuntime.ValidateSubscriptionEventAsync(subscription.ElementName, eventRepresentation);
-            if (!result) return;
+                await ProcessRuntime.ValidateSubscriptionEventAsync(subscription.ElementId, eventRepresentation,
+                    cancellationToken);
+            if (!result)
+            {
+                return;
+            }
+
             // Unsubscribe from event subscription
             await _eventDriver.CancelSubscriptionAsync(subscription.Id, cancellationToken);
 
             // Decrease counter to handle correct process stop
-            _awaitingSubscriptions--;
+            _asynchronousResumeCount--;
 
             // Resume execution
-            _executionQueue.Enqueue(new Tuple<ElementNodeId, int>(new ElementNodeId(subscription.ThreadId, node),
-                ExecutionStatuses.Exit));
-            if (_queueTaskCompletionSource != null) _queueTaskCompletionSource.SetResult();
+            _executionQueue.Enqueue(new ExecutionElement(node.Id, subscription.ThreadId, ExecutionStatuses.Exit));
+            if (_queueTaskCompletionSource != null && !_queueTaskCompletionSource.TrySetResult())
+            {
+                // TODO: Log warning
+            }
         }
 
         // Handle events: send events to process
-        if (subscription.EventSubscriptionType == EventSubscriptionType.EventHandler)
+        if (subscription.EventSubscriptionType == EventSubscriptionType.HandleEvent)
             // TODO: Handle message in node
+        {
             throw new NotImplementedException();
+        }
     }
 
     public async Task StartAsync(CancellationToken cancellationToken = default)
@@ -97,65 +105,70 @@ public class GraphProcessInstance : IProcessInstance
         await ExecuteAsync(Guid.NewGuid(), StartNode, ExecutionStatuses.Execute, cancellationToken);
     }
 
+    /// <summary>
+    /// Resume execution after system restart
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
     public Task ResumeAsync(CancellationToken cancellationToken = default)
     {
-        // TODO: Restore _awaitingSubscriptions
+        // TODO: Restore _asynchronousResumeCount
         // TODO: Enqueue next
         throw new NotImplementedException();
     }
 
-    private async Task<int> MoveNextAsync(ElementNode node, int state, CancellationToken cancellationToken = default)
+    private async Task<int> MoveNextAsync(Guid threadId, ElementNode node, int state,
+        CancellationToken cancellationToken = default)
     {
         if (state == ExecutionStatuses.Execute)
         {
             PrepareAndGetNodeElement(node);
 
-            // set declared parameters value from they're getters 
-            if (node.Parameters != null)
-                foreach (var parameter in node.Parameters.Where(w => w.Getter != null))
-                {
-                    var value = parameter.Getter!.Invoke(this);
+            // set declared parameters value from they're getters
+            foreach (var parameter in node.Parameters.Where(w => w.Getter != null))
+            {
+                var value = parameter.Getter!.Invoke(this);
 
-                    // TODO: there are may be some possible cases of boxing. Should to write implicit for value types
-                    ProcessRuntime.SetElementParameter(node.Name, parameter.Name, value);
-                }
+                // TODO: there are may be some possible cases of boxing. Should to write implicit for value types
+                ProcessRuntime.SetElementParameter(node.Id, parameter.Name, value);
+            }
 
-            await ProcessRuntime.ExecuteElementAsync(node.Name, cancellationToken);
+            await ProcessRuntime.ExecuteElementAsync(node.Id, cancellationToken);
 
-            // get and store parameter values by they're setters 
-            if (node.Parameters != null)
-                foreach (var parameter in node.Parameters.Where(w => w.Setter != null))
-                {
-                    var value = ProcessRuntime.GetElementParameter(node.Name, parameter.Name);
+            // get and store parameter values by they're setters
+            foreach (var parameter in node.Parameters.Where(w => w.Setter != null))
+            {
+                var value = ProcessRuntime.GetElementParameter(node.Id, parameter.Name);
 
-                    // TODO: there are may be some possible cases of boxing. Should to write implicit for value types
-                    parameter.Setter!.Invoke(this, value);
-                }
+                // TODO: there are may be some possible cases of boxing. Should to write implicit for value types
+                parameter.Setter!.Invoke(this, value);
+            }
 
             //TODO: parameters binding set
 
-            return node.IsShouldCallAfterExecute ? ExecutionStatuses.AfterExecute : ExecutionStatuses.Exit;
+            return node.UseAfterExecution ? ExecutionStatuses.AfterExecution : ExecutionStatuses.Exit;
         }
 
-        if (state == ExecutionStatuses.AfterExecute)
+        if (state == ExecutionStatuses.AfterExecution)
         {
-            await ProcessRuntime.AfterExecuteElementAsync(node.Name, cancellationToken);
+            await ProcessRuntime.AfterExecutionElementAsync(node.Id, cancellationToken);
 
-            return node.IsShouldAwait ? ExecutionStatuses.ConfigureAwaiter : ExecutionStatuses.Exit;
+            return node.UseAsynchronousResume ? ExecutionStatuses.ConfigureAsynchronousResume : ExecutionStatuses.Exit;
         }
 
-        if (state == ExecutionStatuses.ConfigureAwaiter)
+        if (state == ExecutionStatuses.ConfigureAsynchronousResume)
         {
-            // Get subscriptions fron element
-            var subscriptions = await ProcessRuntime.ConfigureAwaiterAsync(node.Name, cancellationToken);
+            // Get subscriptions from element
+            var subscriptions = await ProcessRuntime.ConfigureAsynchronousResumeAsync(node.Id, cancellationToken);
             var isShouldBreak = false;
             foreach (var subscription in subscriptions)
             {
-                await _eventDriver.SubscribeAsync(Id, node.Name, subscription, cancellationToken);
+                await _eventDriver.SubscribeAsync(Id, threadId, node.Id, subscription, cancellationToken);
                 isShouldBreak = true;
             }
 
-            // Break execution if collection is't empty subscriptions 
+            // Break execution if collection isn't empty subscriptions
             // Continue if subscription collection is empty
             return isShouldBreak ? ExecutionStatuses.Break : ExecutionStatuses.Exit;
         }
@@ -166,93 +179,107 @@ public class GraphProcessInstance : IProcessInstance
     private async Task ExecuteAsync(Guid threadId, ElementNode node, int initialState = ExecutionStatuses.Execute,
         CancellationToken cancellationToken = default)
     {
-        _executionQueue.Enqueue(new Tuple<ElementNodeId, int>(new ElementNodeId(threadId, node), initialState));
+        _executionQueue.Enqueue(new ExecutionElement(node.Id, threadId, initialState));
         while (true)
         {
             if (_executionQueue.Count == 0)
             {
-                if (_awaitingSubscriptions == 0)
-                    // Property _awaitingSubscriptions uses to handle correct process stop
-                    // If nothing await process should to stop execution
+                if (_asynchronousResumeCount == 0)
+                    // Property _asynchronousResumeCount uses to handle correct process stop
+                    // If nothing to resume, process should to stop execution
+                {
                     break;
+                }
 
                 // Wait new queue elements with TaskCompletionSource signal
                 _queueTaskCompletionSource = new TaskCompletionSource();
                 await _queueTaskCompletionSource.Task;
             }
 
-            await DequeueAndExecuteAsync();
+            await DequeueAndExecuteAsync(cancellationToken);
         }
+        // end of execution
+        // TODO: Inform ProcessExecutionEngine about execution stopping
     }
 
     private async Task DequeueAndExecuteAsync(CancellationToken cancellationToken = default)
     {
-        var tuple = _executionQueue.Dequeue();
-        var current = tuple.Item1;
-        var state = tuple.Item2;
+        var execution = _executionQueue.Dequeue();
+        var current = Nodes[execution.ElementId];
+        var state = execution.ExecutionState;
         while (state != ExecutionStatuses.Exit && state != ExecutionStatuses.Break)
         {
-            await SaveExecutionStatus(current.Id, current.Node.Name, state);
+            await SaveExecutionStatus(execution.ThreadId, execution.ElementId, state);
 
-            state = await MoveNextAsync(current.Node, state, cancellationToken);
+            state = await MoveNextAsync(execution.ThreadId, current, state, cancellationToken);
         }
 
         if (state == ExecutionStatuses.Break)
         {
             // Increase counter to handle correct process stop
-            _awaitingSubscriptions++;
+            _asynchronousResumeCount++;
 
             // Break execution of current node
             return;
         }
 
         // Calculate next execution node
-        EnqueueNextExecution(current);
+        EnqueueNextExecution(execution);
     }
 
-    private void EnqueueNextExecution(ElementNodeId current)
+    private void EnqueueNextExecution(ExecutionElement execution)
     {
-        // If gate is inclusive (bpmn x) this means taht only one node will be executed
+        // If gate is inclusive (bpmn x) this means that only one node will be executed
         // If gate is exclusive (bpmn +), all positive connections will be executed
         var inclusiveFound = false;
         var exit = false;
         var currentThreadFound = false;
-        for (var i = 0; i < current.Node.Connections.Count; i++)
+        var node = Nodes[execution.ElementId];
+        foreach (var edge in node.Connections)
         {
-            var edge = current.Node.Connections[i];
             if (edge is ConditionalConnection conditionalElementNodeConnection)
             {
-                var from = ProcessRuntime.Components[current.Node.Name];
+                var from = ProcessRuntime.Components[execution.ElementId];
                 var to = PrepareAndGetNodeElement(edge.To);
-                if (!conditionalElementNodeConnection.IsCanNavigate(this, from, to)) continue;
+                if (!conditionalElementNodeConnection.IsCanNavigate(this, from, to))
+                {
+                    continue;
+                }
 
                 exit = true;
             }
             else
             {
-                if (current.Node.IsInclusiveGate && !inclusiveFound) exit = true;
+                if (node.IsInclusiveGate && !inclusiveFound)
+                {
+                    exit = true;
+                }
             }
 
             var next = edge.To;
-            var threadId = currentThreadFound ? Guid.NewGuid() : current.Id;
-            _executionQueue.Enqueue(new Tuple<ElementNodeId, int>(new ElementNodeId(threadId, next),
-                ExecutionStatuses.Execute));
+            var threadId = currentThreadFound ? Guid.NewGuid() : execution.ThreadId;
+            _executionQueue.Enqueue(new ExecutionElement(next.Id, threadId, ExecutionStatuses.Execute));
             currentThreadFound = true;
             inclusiveFound = true;
-            if (!current.Node.IsInclusiveGate || exit) break;
+            if (!node.IsInclusiveGate || exit)
+            {
+                break;
+            }
         }
     }
 
     private BaseElement PrepareAndGetNodeElement(ElementNode node)
     {
-        if (!ProcessRuntime.Components.ContainsKey(node.Name))
-            ProcessRuntime.CreateComponent(node.Type.Name, node.Name);
+        if (!ProcessRuntime.Components.ContainsKey(node.Id))
+        {
+            ProcessRuntime.CreateComponent(node.Id, node.ElementType);
+        }
 
-        return ProcessRuntime.Components[node.Name];
+        return ProcessRuntime.Components[node.Id];
     }
 
     private async Task SaveExecutionStatus(Guid threadId,
-        string elementName, int state)
+        Guid elementId, int state)
     {
         if (
             (PersistType == PersistType.ElemExec && state == 0)
@@ -260,10 +287,13 @@ public class GraphProcessInstance : IProcessInstance
         )
         {
             if (_executionPersistence == null)
+            {
                 throw new Exception("Type IExecutionPersistence not present in DI container");
+            }
+
             await _executionPersistence.SaveExecutionStatus(ProcessId, ProcessVersionId, Id,
                 threadId,
-                elementName, state);
+                elementId, state);
         }
     }
 }

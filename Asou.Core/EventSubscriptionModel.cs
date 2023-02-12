@@ -6,12 +6,12 @@ public record EventSubscriptionModel(
     Guid Id,
     Guid ProcessInstanceId,
     Guid ThreadId,
-    string ElementName,
+    Guid ElementId,
     string Source,
     string Type,
     string Subject,
-    bool IsActive,
     EventSubscriptionType EventSubscriptionType
 )
 {
+    public bool IsActive { get; set; } = true;
 }

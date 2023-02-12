@@ -5,6 +5,4 @@ public record ProcessContract(
     Guid ProcessVersionId,
     int VersionNumber,
     string Name
-)
-{
-}
+);

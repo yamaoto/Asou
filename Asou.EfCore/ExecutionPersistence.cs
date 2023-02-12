@@ -1,12 +1,13 @@
 using Asou.GraphEngine;
 
-namespace WebApplication1;
+namespace Asou.EfCore;
 
 public class ExecutionPersistence : IExecutionPersistence
 {
     public Task SaveExecutionStatus(Guid processContractId, Guid processVersionId, Guid instanceId, Guid threadId,
-        string elementName, int state)
+        Guid elementId, int state)
     {
+        // TODO: Implement save execution status
         return Task.CompletedTask;
     }
 }

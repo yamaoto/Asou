@@ -7,9 +7,9 @@ namespace Asou.GraphEngine.CodeContractStorage;
 public class GraphProcessContract
 {
     internal readonly List<ConnectionBuilderInfo> Graph = new();
-    internal readonly Dictionary<string, NodeBuilderInfo> Nodes = new();
+    internal readonly Dictionary<string, ElementNode> Nodes = new();
 
-    private ConnectionBuilderInfo? _current;
+    private string? _currentElement;
 
     public required ProcessContract ProcessContract { get; init; }
 
@@ -23,95 +23,119 @@ public class GraphProcessContract
         return flow;
     }
 
-    public GraphProcessContract StartFrom<T>(string? to = null) where T : BaseElement
+    public GraphProcessContract StartFrom<T>(string? to = null, Guid? toId = null) where T : BaseElement
     {
-        var item = new ConnectionBuilderInfo { To = to ?? typeof(T).Name, ToType = typeof(T) };
-        Graph.Add(item);
-        _current = item;
+        _currentElement = SetNode<T>(to, toId);
+        Graph.Add(new ConnectionBuilderInfo { ToElementId = Nodes[_currentElement].Id });
         return this;
     }
 
-    public GraphProcessContract Then<T>(string? to = null) where T : BaseElement
+    public GraphProcessContract Then<T>(string? to = null, Guid? toId = null) where T : BaseElement
     {
-        if (_current == null) throw new Exception("There are not start point");
-
-        var item = new ConnectionBuilderInfo
+        if (_currentElement == null)
         {
-            From = _current.To, FromType = _current.ToType, To = to ?? typeof(T).Name, ToType = typeof(T)
-        };
-        Graph.Add(item);
-        _current = item;
+            throw new Exception("There are not start point");
+        }
+
+        var fromVar = _currentElement;
+        _currentElement = SetNode<T>(to, toId);
+        Graph.Add(new ConnectionBuilderInfo
+        {
+            FromElementId = Nodes[fromVar].Id, ToElementId = Nodes[_currentElement].Id
+        });
         return this;
     }
 
-    public GraphProcessContract Sequence<TFrom, TTo>(string? from = null, string? to = null)
+    public GraphProcessContract Sequence<TFrom, TTo>(string? from = null, string? to = null, Guid? toId = null,
+        Guid? fromId = null)
+        where TFrom : BaseElement
         where TTo : BaseElement
     {
-        var item = new ConnectionBuilderInfo
+        var fromVar = SetNode<TFrom>(from, fromId);
+        _currentElement = SetNode<TTo>(to, toId);
+        Graph.Add(new ConnectionBuilderInfo
         {
-            From = from ?? typeof(TFrom).Name,
-            FromType = typeof(TFrom),
-            To = to ?? typeof(TTo).Name,
-            ToType = typeof(TTo)
-        };
-        Graph.Add(item);
-        _current = item;
+            FromElementId = Nodes[fromVar].Id, ToElementId = Nodes[_currentElement].Id
+        });
         return this;
     }
 
-    public GraphProcessContract Conditional<TFrom, TTo>(string conditionName, string? from = null, string? to = null)
+
+    public GraphProcessContract Conditional<TFrom, TTo>(string conditionName,
+        string? from = null, string? to = null, Guid? toId = null, Guid? fromId = null)
         where TFrom : BaseElement, IPreconfiguredConditions
         where TTo : BaseElement
     {
-        var item = new ConnectionBuilderInfo
+        var fromVar = SetNode<TFrom>(from, fromId);
+        _currentElement = SetNode<TTo>(to, toId);
+        Graph.Add(new ConnectionBuilderInfo
         {
-            From = from ?? typeof(TFrom).Name,
-            FromType = typeof(TFrom),
-            To = to ?? typeof(TTo).Name,
-            ToType = typeof(TTo),
+            FromElementId = Nodes[fromVar].Id,
+            ToElementId = Nodes[_currentElement].Id,
             ConditionName = conditionName
-        };
-        Graph.Add(item);
-        _current = item;
+        });
         return this;
     }
 
     public GraphProcessContract Conditional<TFrom, TTo>(Func<IProcessInstance, TFrom, TTo, bool> condition,
-        string? from = null, string? to = null)
+        string? from = null, string? to = null, Guid? toId = null, Guid? fromId = null)
         where TFrom : BaseElement, IPreconfiguredConditions
         where TTo : BaseElement
     {
-        var item = new ConnectionBuilderInfo
+        var fromVar = SetNode<TFrom>(from, fromId);
+        _currentElement = SetNode<TTo>(to, toId);
+        Graph.Add(new ConnectionBuilderInfo
         {
-            From = from ?? typeof(TFrom).Name,
-            FromType = typeof(TFrom),
-            To = to ?? typeof(TTo).Name,
-            ToType = typeof(TTo),
+            FromElementId = Nodes[fromVar].Id,
+            ToElementId = Nodes[_currentElement].Id,
             Condition = Unsafe.As<IsCanNavigateDelegate>(condition)
-        };
-        Graph.Add(item);
-        _current = item;
+        });
         return this;
     }
 
     public GraphProcessContract WithParameter<TElement, TPropertyType>(string name,
         Func<IProcessInstance, TPropertyType>? getter = null, Action<IProcessInstance, TPropertyType>? setter = null)
+        where TElement : BaseElement
     {
-        if (_current == null) throw new Exception("There are not start point");
+        if (_currentElement == null)
+        {
+            throw new Exception("There are not start point");
+        }
 
-        if (!Nodes.ContainsKey(_current.To))
-            Nodes[_current.To] = new NodeBuilderInfo
-            {
-                Name = _current.To, ElementType = _current.ToType, Parameters = new List<ParameterPersistenceInfo>()
-            };
-
-        Nodes[_current.To].Parameters.Add(new ParameterPersistenceInfo
+        var parameter = new ParameterPersistenceInfo
         {
             Name = name,
             Getter = Unsafe.As<Func<IProcessInstance, object>?>(getter),
             Setter = Unsafe.As<Action<IProcessInstance, object>?>(setter),
             Type = typeof(TPropertyType)
-        });
+        };
+        Nodes[_currentElement].Parameters.Add(parameter);
         return this;
+    }
+
+    private string SetNode<T>(string? name = null, Guid? id = null) where T : BaseElement
+    {
+        var nameVar = name ?? typeof(T).Name;
+        var idVar = id ?? Guid.NewGuid();
+
+        if (!Nodes.TryGetValue(nameVar, out var element))
+        {
+            var type = typeof(T);
+            element = new ElementNode
+            {
+                Id = idVar,
+                DisplayName = nameVar,
+                ElementType = typeof(T),
+                Parameters = new List<ParameterPersistenceInfo>(),
+                Connections = new List<IElementNodeConnection>(),
+                // TODO: Set IsInclusiveGate properly
+                IsInclusiveGate = false,
+                UseAsynchronousResume = type.IsAssignableTo(typeof(IAsynchronousResume)),
+                UseAfterExecution = type.IsAssignableTo(typeof(IAfterExecution))
+            };
+            Nodes[nameVar] = element;
+        }
+
+        return nameVar;
     }
 }

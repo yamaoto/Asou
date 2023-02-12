@@ -12,7 +12,9 @@ public class GraphProcessContractRepository : IGraphProcessContractRepository
         {
             var graphProcessContract = items.MaxBy(m => m.ProcessContract.VersionNumber);
             if (graphProcessContract != null)
+            {
                 return Task.FromResult((ProcessContract?)graphProcessContract.ProcessContract);
+            }
         }
 
         return Task.FromResult((ProcessContract?)null);
@@ -27,7 +29,9 @@ public class GraphProcessContractRepository : IGraphProcessContractRepository
                 m.ProcessContract.ProcessVersionId == processVersionId &&
                 m.ProcessContract.VersionNumber == versionNumber);
             if (graphProcessContract != null)
+            {
                 return Task.FromResult((ProcessContract?)graphProcessContract.ProcessContract);
+            }
         }
 
         return Task.FromResult((ProcessContract?)null);
@@ -41,7 +45,10 @@ public class GraphProcessContractRepository : IGraphProcessContractRepository
             var graphProcessContract = items.FirstOrDefault(m =>
                 m.ProcessContract.ProcessVersionId == processVersionId &&
                 m.ProcessContract.VersionNumber == versionNumber);
-            if (graphProcessContract != null) return graphProcessContract;
+            if (graphProcessContract != null)
+            {
+                return graphProcessContract;
+            }
         }
 
         return null;

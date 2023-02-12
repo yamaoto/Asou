@@ -16,9 +16,14 @@ public class GraphProcessRegistration : IGraphProcessRegistration
 
     public void RegisterFlow(GraphProcessContract graphProcessContract)
     {
+        // Prepare element parameters getter and setter delegates
         foreach (var (_, node) in graphProcessContract.Nodes)
-        foreach (var parameter in node.Parameters)
-            _parameterDelegateFactory.CreateDelegates(node.ElementType, parameter.Name);
+        {
+            foreach (var parameter in node.Parameters)
+            {
+                _parameterDelegateFactory.CreateDelegates(node.ElementType, parameter.Name);
+            }
+        }
 
         _processContractRepository.AddProcessContract(graphProcessContract);
     }

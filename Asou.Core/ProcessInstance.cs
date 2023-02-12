@@ -5,6 +5,4 @@ public record ProcessInstance(
     Guid ProcessVersionId,
     int VersionNumber,
     int State
-)
-{
-}
+);

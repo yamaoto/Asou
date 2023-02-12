@@ -6,6 +6,4 @@ public record EventSubscription
     string Type,
     string Subject,
     EventSubscriptionType EventSubscriptionType
-)
-{
-}
+);

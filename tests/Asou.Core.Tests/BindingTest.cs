@@ -24,13 +24,13 @@ public class BindingTest
         parameterDelegateFactory.CreateDelegates<TestElement, string>("ParameterA");
         var processMachine = new ProcessRuntime(parameterDelegateFactory, nameof(BindingTest))
         {
-            ComponentFactory = (_, _) => testElement
+            ComponentFactory = _ => testElement
         };
-        processMachine.CreateComponent("testElement", "testElement");
+        processMachine.CreateComponent(new Guid("266090b8-e7d4-4a2f-8b3b-ef622f137ab4"), typeof(TestElement));
         var stopWatch = Stopwatch.StartNew();
 
         // Act
-        var result = processMachine.GetElementParameter("testElement", "ParameterA");
+        var result = processMachine.GetElementParameter(new Guid("266090b8-e7d4-4a2f-8b3b-ef622f137ab4"), "ParameterA");
 
         stopWatch.Stop();
         _testOutputHelper.WriteLine("Act elapsed {0} ms", stopWatch.ElapsedMilliseconds);
@@ -48,13 +48,14 @@ public class BindingTest
         parameterDelegateFactory.CreateDelegates<TestElement, string>("ParameterA");
         var processMachine = new ProcessRuntime(parameterDelegateFactory, nameof(BindingTest))
         {
-            ComponentFactory = (name, objectName) => testElement
+            ComponentFactory = _ => testElement
         };
-        processMachine.CreateComponent("testElement", "testElement");
+        processMachine.CreateComponent(new Guid("266090b8-e7d4-4a2f-8b3b-ef622f137ab4"),
+            typeof(TestElement));
         var stopWatch = Stopwatch.StartNew();
 
         // Act
-        processMachine.SetElementParameter("testElement", "ParameterA", "WORLD");
+        processMachine.SetElementParameter(new Guid("266090b8-e7d4-4a2f-8b3b-ef622f137ab4"), "ParameterA", "WORLD");
 
         stopWatch.Stop();
         _testOutputHelper.WriteLine("Act elapsed {0} ms", stopWatch.ElapsedMilliseconds);
@@ -63,9 +64,10 @@ public class BindingTest
         Assert.Equal("WORLD", testElement.ParameterA);
     }
 
-    private class TestElement : BaseElement
+    private sealed class TestElement : BaseElement
     {
-        public string ParameterA { get; } = "HELLO";
+        // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Local
+        public string ParameterA { get; set; } = "HELLO";
 
         public override Task ExecuteAsync(CancellationToken cancellationToken = default)
         {

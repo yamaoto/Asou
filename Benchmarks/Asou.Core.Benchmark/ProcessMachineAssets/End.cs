@@ -2,7 +2,7 @@ using Asou.Abstractions.ExecutionElements;
 
 namespace Asou.Core.Benchmark.ProcessMachineAssets;
 
-internal class End : BaseElement
+internal sealed class End : BaseElement
 {
     public override Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
