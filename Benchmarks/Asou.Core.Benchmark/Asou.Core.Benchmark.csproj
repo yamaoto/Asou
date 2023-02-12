@@ -8,10 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.2"/>
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Asou.Core\Asou.Core.csproj"/>
+    <ProjectReference Include="..\..\Asou.Core\Asou.Core.csproj" />
   </ItemGroup>
 </Project>
