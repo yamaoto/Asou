@@ -5,17 +5,17 @@ using Newtonsoft.Json;
 
 namespace WebApplication1.FunctionalTests;
 
-public class HelloWorldProcessTest : IClassFixture<WebApplicationFactory<Program>>
+public class SampleProcessTest : IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly WebApplicationFactory<Program> _factory;
 
-    public HelloWorldProcessTest(WebApplicationFactory<Program> factory)
+    public SampleProcessTest(WebApplicationFactory<Program> factory)
     {
         _factory = factory;
     }
 
     [Fact]
-    public async Task TestHelloWorld()
+    public async Task TestExecution()
     {
         // Arrange
         var client = _factory.CreateClient();
