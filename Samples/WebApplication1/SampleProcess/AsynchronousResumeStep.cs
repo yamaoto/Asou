@@ -45,7 +45,7 @@ public class AsynchronousResumeStep : BaseElement, IAfterExecution, IAsynchronou
         Task.Run(async () =>
         {
             Console.WriteLine("AsynchronousResumeStep 1 {0}", DateTime.Now);
-            await Task.Delay(1000, cts.Token);
+            await Task.Delay(500, cts.Token);
             Console.WriteLine("AsynchronousResumeStep 2 {0}", DateTime.Now);
             await _eventDriver.PublishAsync(
                 new EventRepresentation(Guid.NewGuid().ToString(), "urn:WebApplication1.SampleProcess.AsynchronousResumeStep",

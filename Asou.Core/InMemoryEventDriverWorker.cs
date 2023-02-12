@@ -1,3 +1,4 @@
+using Asou.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Asou.Core;
@@ -41,7 +42,16 @@ public class InMemoryEventDriverWorker : IDisposable
         // loop while cancellation token isn't requested
         while (!_cancellationTokenSource.IsCancellationRequested)
         {
-            var message = await _queue.DequeueAsync(_cancellationTokenSource.Token);
+            EventRepresentation message;
+            try
+            {
+                message = await _queue.DequeueAsync(_cancellationTokenSource.Token);
+            }
+            catch (TaskCanceledException)
+            {
+                // Ignore TaskCanceledException
+                return;
+            }
             using var scope = _serviceProvider.CreateScope();
             var subscriptionManager = scope.ServiceProvider.GetRequiredService<SubscriptionManager>();
             // Call event system to check subscriptions and pass event
