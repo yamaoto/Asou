@@ -1,6 +1,6 @@
 using Asou.Abstractions;
-using Asou.Abstractions.Process;
-using Asou.Abstractions.Repositories;
+using Asou.Abstractions.Process.Contract;
+using Asou.Abstractions.Process.Execution;
 using Asou.GraphEngine;
 using Asou.GraphEngine.CodeContractStorage;
 using Microsoft.Extensions.DependencyInjection.Extensions;

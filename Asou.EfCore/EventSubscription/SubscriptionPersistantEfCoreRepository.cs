@@ -1,8 +1,7 @@
 using Asou.Abstractions.Events;
-using Asou.Abstractions.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-namespace Asou.EfCore;
+namespace Asou.EfCore.EventSubscription;
 
 public class SubscriptionPersistantEfCoreRepository : ISubscriptionPersistantRepository
 {

@@ -1,6 +1,4 @@
-using Asou.Abstractions.Events;
-
-namespace Asou.Abstractions.Repositories;
+namespace Asou.Abstractions.Events;
 
 public interface ISubscriptionPersistantRepository
 {

@@ -17,8 +17,8 @@ public class AsouBackgroundServices : IHostedService
         await _processExecutionEngine.InitializeAsync();
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
-        return Task.CompletedTask;
+        await _processExecutionEngine.StopExecutionAsync(cancellationToken);
     }
 }

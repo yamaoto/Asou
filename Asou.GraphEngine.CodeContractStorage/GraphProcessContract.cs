@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using Asou.Abstractions.ExecutionElements;
-using Asou.Abstractions.Process;
+using Asou.Abstractions.Process.Contract;
+using Asou.Abstractions.Process.Instance;
 
 namespace Asou.GraphEngine.CodeContractStorage;
 
@@ -10,6 +11,7 @@ public class GraphProcessContract
     internal readonly Dictionary<string, ElementNode> Nodes = new();
 
     private string? _currentElement;
+    internal PersistenceType PersistenceType = PersistenceType.AdditionalPersistence;
 
     public required ProcessContract ProcessContract { get; init; }
 
@@ -21,6 +23,12 @@ public class GraphProcessContract
             ProcessContract = new ProcessContract(processContractId, processVersionId, versionNumber, name)
         };
         return flow;
+    }
+
+    public GraphProcessContract SetPersistence(PersistenceType persistenceType)
+    {
+        PersistenceType = persistenceType;
+        return this;
     }
 
     public GraphProcessContract StartFrom<T>(string? to = null, Guid? toId = null) where T : BaseElement

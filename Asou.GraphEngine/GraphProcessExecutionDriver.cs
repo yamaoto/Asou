@@ -1,5 +1,7 @@
 using System.Runtime.CompilerServices;
-using Asou.Abstractions.Process;
+using Asou.Abstractions.Process.Contract;
+using Asou.Abstractions.Process.Execution;
+using Asou.Abstractions.Process.Instance;
 
 namespace Asou.GraphEngine;
 
@@ -13,10 +15,9 @@ public class GraphProcessExecutionDriver : IProcessExecutionDriver
         _processFactory = processFactory;
     }
 
-    public async Task<IProcessInstance> CreateInstanceAsync(ProcessContract processContract,
+    public async Task<IProcessInstance> CreateInstanceAsync(ProcessContract processContract, Guid processInstanceId,
         CancellationToken cancellationToken = default)
     {
-        var processInstanceId = Guid.NewGuid();
         var processInstance = await _processFactory.CreateProcessInstance(processInstanceId, processContract);
         return processInstance;
     }

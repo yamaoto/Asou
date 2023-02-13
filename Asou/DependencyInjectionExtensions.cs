@@ -13,7 +13,7 @@ public static class DependencyInjectionExtensions
         where TDbContext : DbContext
     {
         // Register ASOU core services
-        services.TryAddTransient<ISubscriptionManager, SubscriptionManager>();
+        services.TryAddSingleton<ISubscriptionManager, SubscriptionManager>();
         services.TryAddSingleton<ProcessExecutionEngine>();
         services.TryAddSingleton<IParameterDelegateFactory, ParameterDelegateFactory>();
 

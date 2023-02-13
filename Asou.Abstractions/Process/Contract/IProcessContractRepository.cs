@@ -1,6 +1,4 @@
-using Asou.Abstractions.Process;
-
-namespace Asou.Abstractions.Repositories;
+namespace Asou.Abstractions.Process.Contract;
 
 public interface IProcessContractRepository
 {

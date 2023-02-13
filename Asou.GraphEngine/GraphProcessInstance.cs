@@ -1,6 +1,8 @@
 using Asou.Abstractions.Events;
 using Asou.Abstractions.ExecutionElements;
-using Asou.Abstractions.Process;
+using Asou.Abstractions.Process.Contract;
+using Asou.Abstractions.Process.Execution;
+using Asou.Abstractions.Process.Instance;
 using Asou.Core.Process;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,9 +11,8 @@ namespace Asou.GraphEngine;
 public class GraphProcessInstance : IProcessInstance
 {
     private readonly IEventDriver _eventDriver;
-    private readonly IExecutionPersistence? _executionPersistence;
     private readonly Queue<ExecutionElement> _executionQueue = new();
-    private readonly IServiceScope _serviceScope;
+    private readonly IProcessExecutionLogRepository? _processExecutionLogRepository;
     private int _asynchronousResumeCount;
     private TaskCompletionSource? _queueTaskCompletionSource;
 
@@ -22,23 +23,24 @@ public class GraphProcessInstance : IProcessInstance
         ProcessRuntime processRuntime,
         ElementNode startNode,
         ElementNode[] nodes,
+        PersistenceType persistenceType,
         IServiceScope serviceScope)
     {
         Id = id;
         ProcessContract = processContract;
         ProcessRuntime = processRuntime;
-        _serviceScope = serviceScope;
         StartNode = startNode;
         Nodes = nodes.ToDictionary(k => k.Id);
-        _executionPersistence = serviceScope.ServiceProvider.GetService<IExecutionPersistence>();
+        PersistenceType = persistenceType;
+        _processExecutionLogRepository = serviceScope.ServiceProvider.GetService<IProcessExecutionLogRepository>();
         _eventDriver = serviceScope.ServiceProvider.GetRequiredService<IEventDriver>();
     }
 
     public Guid ProcessId => ProcessContract.ProcessContractId;
     public Guid ProcessVersionId => ProcessContract.ProcessVersionId;
-    public ElementNode StartNode { get; init; }
-    public Dictionary<Guid, ElementNode> Nodes { get; init; }
-    public PersistType PersistType { get; init; }
+    public ElementNode StartNode { get; }
+    public Dictionary<Guid, ElementNode> Nodes { get; }
+    public PersistenceType PersistenceType { get; }
 
     public ProcessContract ProcessContract { get; }
 
@@ -281,18 +283,17 @@ public class GraphProcessInstance : IProcessInstance
         Guid elementId, int state)
     {
         if (
-            (PersistType == PersistType.ElemExec && state == 0)
-            || PersistType == PersistType.ElemStateExec
+            (PersistenceType == PersistenceType.StandardPersistence && state == 0)
+            || PersistenceType == PersistenceType.AdditionalPersistence
         )
         {
-            if (_executionPersistence == null)
+            if (_processExecutionLogRepository == null)
             {
                 throw new Exception("Type IExecutionPersistence not present in DI container");
             }
 
-            await _executionPersistence.SaveExecutionStatus(ProcessId, ProcessVersionId, Id,
-                threadId,
-                elementId, state);
+            await _processExecutionLogRepository.SaveExecutionStatusAsync(ProcessId, ProcessVersionId, Id,
+                threadId, elementId, state);
         }
     }
 }

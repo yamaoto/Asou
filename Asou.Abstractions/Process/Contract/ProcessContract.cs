@@ -1,4 +1,4 @@
-namespace Asou.Abstractions.Process;
+namespace Asou.Abstractions.Process.Contract;
 
 public record ProcessContract(
     Guid ProcessContractId,

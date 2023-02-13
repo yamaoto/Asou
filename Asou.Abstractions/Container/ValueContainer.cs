@@ -6,7 +6,7 @@ namespace Asou.Abstractions.Container;
 /// <remarks>
 ///     This class is used to store the value of a property in an object.
 /// </remarks>
-public class ValueContainer : IContainer
+public sealed class ValueContainer : IContainer
 {
     /// <summary>Serialized string of container stored in JSON format.</summary>
     public required string Value { get; init; }

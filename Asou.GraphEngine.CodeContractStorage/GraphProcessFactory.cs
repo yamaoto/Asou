@@ -1,5 +1,6 @@
 ﻿using Asou.Abstractions.ExecutionElements;
-using Asou.Abstractions.Process;
+using Asou.Abstractions.Process.Contract;
+using Asou.Abstractions.Process.Instance;
 using Asou.Core.Process;
 using Asou.Core.Process.Binding;
 using Microsoft.Extensions.DependencyInjection;
@@ -60,8 +61,7 @@ public class GraphProcessFactory : IGraphProcessFactory
                 (BaseElement)scope.ServiceProvider.GetRequiredService(elementType)
         };
         var processInstance = new GraphProcessInstance(processInstanceId, graphProcessContract.ProcessContract,
-            processRuntime, startNode, nodes.Values.ToArray(),
-            scope);
+            processRuntime, startNode, nodes.Values.ToArray(), graphProcessContract.PersistenceType, scope);
 
         return Task.FromResult((IProcessInstance)processInstance);
     }

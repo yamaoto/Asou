@@ -21,7 +21,7 @@ public class SampleProcessTest : IClassFixture<WebApplicationFactory<Program>>
         var client = _factory.CreateClient();
 
         // Act
-        var response = await client.PostAsync("/", null);
+        var response = await client.PostAsync("/SampleProcess", null);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

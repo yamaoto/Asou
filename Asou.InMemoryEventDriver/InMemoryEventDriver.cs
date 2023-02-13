@@ -1,5 +1,4 @@
 using Asou.Abstractions.Events;
-using Asou.Abstractions.Repositories;
 
 namespace Asou.InMemoryEventDriver;
 

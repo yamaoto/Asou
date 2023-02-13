@@ -1,4 +1,4 @@
-namespace Asou.Abstractions.Process;
+namespace Asou.Abstractions.Process.Instance;
 
 public record ProcessInstance(
     Guid ProcessContractId,

@@ -1,6 +1,6 @@
 using Asou.Abstractions.ExecutionElements;
 
-namespace Asou.Abstractions.Process;
+namespace Asou.Abstractions.Process.Execution;
 
 /// <summary>A process state machine.</summary>
 public interface IProcessMachine

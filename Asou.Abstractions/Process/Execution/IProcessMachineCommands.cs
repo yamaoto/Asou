@@ -1,6 +1,6 @@
 using Asou.Abstractions.Events;
 
-namespace Asou.Abstractions.Process;
+namespace Asou.Abstractions.Process.Execution;
 
 /// <summary>Processes commands from the process state machine.</summary>
 /// <remarks>This interface is by process engines to communicate with process state machine.</remarks>
