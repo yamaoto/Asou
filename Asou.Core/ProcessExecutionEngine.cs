@@ -104,7 +104,7 @@ public class ProcessExecutionEngine
             state = ProcessInstanceState.Running;
             await updateProcessInstanceStateCommand.Handler.ActivateAsync(instance.Id, state, cancellationToken);
 
-            var result = await _driver.RunAsync(instance, executionOptions, cancellationToken);
+            var result = await _driver.RunAsync(instance, executionOptions, cancellationToken: cancellationToken);
             state = ProcessInstanceState.Finished;
             return result;
         }
@@ -133,8 +133,8 @@ public class ProcessExecutionEngine
         await updateProcessInstanceStateCommand.Handler.ActivateAsync(instance.Id, ProcessInstanceState.Running,
             cancellationToken);
 
-        // Execute without awaiting asynchronous task based operation
-        await _driver.RunAsync(instance, new ExecutionOptions(true), cancellationToken);
+        // Resume execution
+        await _driver.ResumeAsync(instance, cancellationToken);
     }
 
     internal async Task HandleEventAsync(EventSubscriptionModel subscription, EventRepresentation eventRepresentation,

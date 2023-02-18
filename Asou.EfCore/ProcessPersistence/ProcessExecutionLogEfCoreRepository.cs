@@ -39,4 +39,15 @@ public class ProcessExecutionLogEfCoreRepository : IProcessExecutionLogRepositor
             .AsNoTracking()
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<IEnumerable<ProcessExecutionLogModel>> GetThreadsAsync(Guid processInstanceId, CancellationToken cancellationToken = default)
+    {
+        var query = _processExecutionLogs.AsNoTracking()
+            .Where(log => log.ProcessInstanceId == processInstanceId)
+            .GroupBy(log => log.ThreadId)
+            // ReSharper disable once SimplifyLinqExpressionUseMinByAndMaxBy
+            .Select(g => g.OrderByDescending(o => o.CreatedOn).FirstOrDefault());
+        var result = await query.ToListAsync(cancellationToken);
+        return result;
+    }
 }

@@ -27,7 +27,7 @@ public class GraphProcessFactory : IGraphProcessFactory
     }
 
     public Task<IProcessInstance> CreateProcessInstance(Guid processInstanceId, ProcessContract processContract,
-        ProcessParameters parameters)
+        ProcessParameters parameters, CancellationToken cancellationToken = default)
     {
         var graphProcessContract = _graphProcessContractRepository.GetGraphProcessContract(
             processContract.ProcessContractId,

@@ -1,7 +1,10 @@
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
+using System.Text;
 using Asou.Abstractions.ExecutionElements;
 using Asou.Abstractions.Process.Contract;
 using Asou.Abstractions.Process.Instance;
+using Microsoft.Extensions.Logging;
 
 namespace Asou.GraphEngine.CodeContractStorage;
 
@@ -11,14 +14,21 @@ public class GraphProcessContract
     internal readonly Dictionary<string, ElementNode> Nodes = new();
 
     private string? _currentElement;
-    internal PersistenceType PersistenceType = PersistenceType.AdditionalPersistence;
+    internal PersistenceType PersistenceType = PersistenceType.Stateful;
 
     public required ProcessContract ProcessContract { get; init; }
+    private readonly ILogger<GraphProcessContract> _logger;
+
+    public GraphProcessContract(ILogger<GraphProcessContract> logger)
+    {
+        _logger = logger;
+    }
 
     public static GraphProcessContract Create(Guid processContractId, Guid processVersionId, int versionNumber,
-        string name)
+        string name, ILogger<GraphProcessContract> logger
+        )
     {
-        var flow = new GraphProcessContract
+        var flow = new GraphProcessContract(logger)
         {
             ProcessContract = new ProcessContract(processContractId, processVersionId, versionNumber, name)
         };
@@ -124,7 +134,17 @@ public class GraphProcessContract
     private string SetNode<T>(string? name = null, Guid? id = null) where T : BaseElement
     {
         var nameVar = name ?? typeof(T).Name;
-        var idVar = id ?? Guid.NewGuid();
+        Guid idVar;
+        if (PersistenceType != PersistenceType.No && id == null)
+        {
+            _logger.LogWarning("Id is not set for {ElementName}, Id will set by MD5", nameVar);
+            var hash = ((HashAlgorithm) CryptoConfig.CreateFromName("MD5")!).ComputeHash(Encoding.UTF8.GetBytes(nameVar));
+            idVar = new Guid(hash);
+        }
+        else
+        {
+            idVar = id ?? Guid.NewGuid();
+        }
 
         if (!Nodes.TryGetValue(nameVar, out var element))
         {

@@ -9,4 +9,7 @@ public interface IProcessExecutionLogRepository
 
     Task<IEnumerable<ProcessExecutionLogModel>> GetLogForProcessInstanceAsync(Guid processInstanceId,
         CancellationToken cancellationToken = default);
+
+    Task<IEnumerable<ProcessExecutionLogModel>> GetThreadsAsync(Guid processInstanceId,
+        CancellationToken cancellationToken = default);
 }

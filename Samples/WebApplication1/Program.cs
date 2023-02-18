@@ -1,6 +1,7 @@
 #pragma warning disable CA1852
 using System.Diagnostics;
 using System.Text.Json.Serialization;
+using Asou.Abstractions.Events;
 using Asou.Abstractions.Process.Execution;
 using Asou.Abstractions.Process.Instance;
 using Asou.Core;
@@ -15,7 +16,19 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddAsou<DataContext>();
 
 // Add EF Core database
-builder.Services.AddDbContext<DataContext>(c => { c.UseInMemoryDatabase("InMemory"); });
+var useSqlite = string.Equals(Environment.GetEnvironmentVariable("APP_USE_SQLITE"), "true",
+    StringComparison.InvariantCultureIgnoreCase);
+builder.Services.AddDbContext<DataContext>(c =>
+{
+    if (useSqlite)
+    {
+        c.UseSqlite("Data Source=asou.db");
+    }
+    else
+    {
+        c.UseInMemoryDatabase("InMemory");
+    }
+});
 
 // Register sample process and execution steps types
 builder.Services.AddAsouProcess<SampleProcessDefinition>();
@@ -31,6 +44,13 @@ builder.Services.Configure<JsonOptions>(opt =>
 });
 
 var app = builder.Build();
+
+if (useSqlite)
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+    dbContext.Database.EnsureCreated();
+}
 
 app.MapFallbackToFile("index.html");
 
@@ -63,7 +83,24 @@ app.MapGet("/data",
 
         return result;
     });
+app.MapPost("/EmitEvent",
+    async (HttpRequest req, IEventDriver eventDriver, CancellationToken cancellationToken) =>
+    {
+        if (!req.HasFormContentType)
+        {
+            return Results.BadRequest(new { Results = "BadRequest" });
+        }
 
+        var form = await req.ReadFormAsync(cancellationToken);
+        var eventRepresentation = new EventRepresentation(
+            Guid.NewGuid().ToString(),
+            "HTTP",
+            form["EventType"]!,
+            form["EventSubject"]!,
+            DateTime.UtcNow, null);
+        await eventDriver.PublishAsync(eventRepresentation, cancellationToken);
+        return Results.Ok(new { Results = "OK" });
+    });
 app.Run();
 
 namespace WebApplication1

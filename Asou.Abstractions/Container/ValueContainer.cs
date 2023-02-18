@@ -44,11 +44,21 @@ public sealed class ValueContainer : IContainer
             case AsouTypes.Guid:
                 return JsonSerializer.Deserialize<Guid>(Value);
             case AsouTypes.Object:
-                return JsonSerializer.Deserialize(Value, System.Type.GetType(ObjectType)!);
+                return DeserializeObject();
             case AsouTypes.ObjectLink:
                 throw new NotImplementedException();
             default:
                 throw new ArgumentOutOfRangeException();
         }
+    }
+
+    private object? DeserializeObject()
+    {
+        if (string.IsNullOrEmpty(ObjectType))
+        {
+            return null;
+        }
+        return JsonSerializer.Deserialize(Value, System.Type.GetType(ObjectType)!);
+
     }
 }

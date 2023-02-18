@@ -13,6 +13,7 @@ public class GraphProcessInstance : IProcessInstance
     private readonly IEventDriver _eventDriver;
     private readonly Queue<ExecutionElement> _executionQueue = new();
     private readonly IProcessExecutionLogRepository? _processExecutionLogRepository;
+    private readonly IProcessExecutionPersistenceRepository? _processExecutionPersistenceRepository;
     private int _asynchronousResumeCount;
     private TaskCompletionSource? _queueTaskCompletionSource;
 
@@ -33,6 +34,8 @@ public class GraphProcessInstance : IProcessInstance
         Nodes = nodes.ToDictionary(k => k.Id);
         PersistenceType = persistenceType;
         _processExecutionLogRepository = serviceScope.ServiceProvider.GetService<IProcessExecutionLogRepository>();
+        _processExecutionPersistenceRepository =
+            serviceScope.ServiceProvider.GetService<IProcessExecutionPersistenceRepository>();
         _eventDriver = serviceScope.ServiceProvider.GetRequiredService<IEventDriver>();
     }
 
@@ -66,6 +69,8 @@ public class GraphProcessInstance : IProcessInstance
         {
             return;
         }
+
+        PrepareAndGetNodeElement(Nodes[subscription.ElementId]);
 
         // Handle events: asynchronous resume
         if (subscription.EventSubscriptionType == EventSubscriptionType.AsynchronousResume)
@@ -101,32 +106,41 @@ public class GraphProcessInstance : IProcessInstance
         }
     }
 
-    public async Task StartAsync(ExecutionOptions executionOptions, CancellationToken cancellationToken = default)
+    public void PrepareStart(ExecutionOptions executionOptions)
     {
-        await ExecuteAsync(executionOptions, Guid.NewGuid(), StartNode, ExecutionStatuses.Execute,
-            cancellationToken);
+        _executionQueue.Enqueue(new ExecutionElement(StartNode.Id, Guid.NewGuid(), ExecutionStatuses.Execute));
     }
 
 
     /// <summary>
-    ///     Resume execution after system restart
+    ///     Prepare resume execution after system restart
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    public Task ResumeAsync(CancellationToken cancellationToken = default)
+    public async Task PrepareResumeAsync(CancellationToken cancellationToken = default)
     {
+        if (_processExecutionLogRepository == null)
+        {
+            throw new Exception("Type IProcessExecutionLogRepository not present in DI container");
+        }
         // TODO: Restore _asynchronousResumeCount
-        // TODO: Enqueue next
-        throw new NotImplementedException();
+
+        var threads = await _processExecutionLogRepository.GetThreadsAsync(Id, cancellationToken);
+        foreach (var thread in threads)
+        {
+            var node = Nodes[thread.ElementId];
+            _executionQueue.Enqueue(new ExecutionElement(thread.ElementId, thread.ThreadId, GetNextState(node, thread.State)));
+        }
     }
 
     private async Task<int> MoveNextAsync(Guid threadId, ElementNode node, int state,
         CancellationToken cancellationToken = default)
     {
+        PrepareAndGetNodeElement(node);
+
         if (state == ExecutionStatuses.Execute)
         {
-            PrepareAndGetNodeElement(node);
 
             // set declared parameters value from they're getters
             foreach (var parameter in node.Parameters.Where(w => w.Getter != null))
@@ -149,15 +163,11 @@ public class GraphProcessInstance : IProcessInstance
             }
 
             //TODO: parameters binding set
-
-            return node.UseAfterExecution ? ExecutionStatuses.AfterExecution : ExecutionStatuses.Exit;
         }
 
         if (state == ExecutionStatuses.AfterExecution)
         {
             await ProcessRuntime.AfterExecutionElementAsync(node.Id, cancellationToken);
-
-            return node.UseAsynchronousResume ? ExecutionStatuses.ConfigureAsynchronousResume : ExecutionStatuses.Exit;
         }
 
         if (state == ExecutionStatuses.ConfigureAsynchronousResume)
@@ -173,16 +183,28 @@ public class GraphProcessInstance : IProcessInstance
 
             // Break execution if collection isn't empty subscriptions
             // Continue if subscription collection is empty
-            return isShouldBreak ? ExecutionStatuses.Break : ExecutionStatuses.Exit;
         }
 
-        return ExecutionStatuses.Exit;
+        return GetNextState(node, state);
     }
 
-    private async Task ExecuteAsync(ExecutionOptions executionOptions, Guid threadId, ElementNode node,
-        int initialState = ExecutionStatuses.Execute, CancellationToken cancellationToken = default)
+    private int GetNextState(ElementNode node, int state)
     {
-        _executionQueue.Enqueue(new ExecutionElement(node.Id, threadId, initialState));
+        return state switch
+        {
+            ExecutionStatuses.Execute => node.UseAfterExecution
+                ? ExecutionStatuses.AfterExecution
+                : ExecutionStatuses.Exit,
+            ExecutionStatuses.AfterExecution => node.UseAsynchronousResume
+                ? ExecutionStatuses.ConfigureAsynchronousResume
+                : ExecutionStatuses.Exit,
+            ExecutionStatuses.ConfigureAsynchronousResume => ExecutionStatuses.Break,
+            _ => ExecutionStatuses.Exit
+        };
+    }
+
+    public async Task ExecuteAsync(CancellationToken cancellationToken = default)
+    {
         while (true)
         {
             if (_executionQueue.Count == 0)
@@ -215,6 +237,8 @@ public class GraphProcessInstance : IProcessInstance
 
             state = await MoveNextAsync(execution.ThreadId, current, state, cancellationToken);
         }
+
+        await SaveExecutionParameters(cancellationToken);
 
         if (state == ExecutionStatuses.Break)
         {
@@ -284,17 +308,30 @@ public class GraphProcessInstance : IProcessInstance
         Guid elementId, int state)
     {
         if (
-            (PersistenceType == PersistenceType.StandardPersistence && state == 0)
-            || PersistenceType == PersistenceType.AdditionalPersistence
+            (PersistenceType == PersistenceType.LogExecution && state == 0)
+            || PersistenceType == PersistenceType.Stateful
         )
         {
             if (_processExecutionLogRepository == null)
             {
-                throw new Exception("Type IExecutionPersistence not present in DI container");
+                throw new Exception("Type IProcessExecutionLogRepository not present in DI container");
             }
 
             await _processExecutionLogRepository.SaveExecutionStatusAsync(ProcessId, ProcessVersionId, Id,
                 threadId, elementId, state);
+        }
+    }
+
+    private async Task SaveExecutionParameters(CancellationToken cancellationToken)
+    {
+        if (PersistenceType == PersistenceType.Stateful)
+        {
+            if (_processExecutionPersistenceRepository == null)
+            {
+                throw new Exception("Type IProcessExecutionPersistenceRepository not present in DI container");
+            }
+            await _processExecutionPersistenceRepository.StoreProcessParameterAsync(Id,
+                ProcessRuntime.Parameters.ToValueContainerMap(), cancellationToken);
         }
     }
 }
