@@ -1,3 +1,4 @@
+#pragma warning disable CA1852
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 using Asou.Abstractions.Process.Execution;
@@ -38,9 +39,10 @@ app.MapPost("/SampleProcess",
     {
         var timer = Stopwatch.StartNew();
         var result = await processExecutionEngine.CreateAndExecuteAsync(new Guid(SampleProcessDefinition.ProcessId),
-            new ProcessParameters { { "Parameter1", "Hello World" }, { "Parameter2", "" } }, cancellationToken);
+            new ProcessParameters { { "Parameter1", "Hello World" }, { "Parameter2", "" } },
+            new ExecutionOptions(false), cancellationToken);
         timer.Stop();
-        result["ElapsedMilliseconds"] = timer.ElapsedMilliseconds;
+        result!["ElapsedMilliseconds"] = timer.ElapsedMilliseconds;
         return result;
     });
 

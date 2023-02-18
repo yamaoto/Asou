@@ -6,7 +6,7 @@ public interface IProcessInstanceRepository
         PersistenceType persistenceType, ProcessInstanceState state, CancellationToken cancellationToken = default);
 
     Task UpdateStateInstanceAsync(Guid id, ProcessInstanceState state, CancellationToken cancellationToken = default);
-    Task<IEnumerable<ProcessInstanceModel>> GetARunningInstancesAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<ProcessInstanceModel>> GetRunningInstancesAsync(CancellationToken cancellationToken = default);
 
     Task<IEnumerable<ProcessInstanceModel>> GetAllInstancesAsync(CancellationToken cancellationToken = default);
 }

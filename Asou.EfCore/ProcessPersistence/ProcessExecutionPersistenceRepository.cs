@@ -23,8 +23,10 @@ public class ProcessExecutionPersistenceEfCoreRepository : IProcessExecutionPers
             .FirstOrDefaultAsync(f => f.ProcessInstanceId == instanceId, cancellationToken);
         if (existing == null)
         {
-            existing = new ProcessParameterPersistentModel(instanceId);
-            existing.JsonContent = JsonSerializer.Serialize(parameters);
+            existing = new ProcessParameterPersistentModel(instanceId)
+            {
+                JsonContent = JsonSerializer.Serialize(parameters)
+            };
             await _processParameterPersistent.AddAsync(existing, cancellationToken);
         }
         else

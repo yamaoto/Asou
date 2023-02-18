@@ -16,17 +16,37 @@ public class GraphProcessExecutionDriver : IProcessExecutionDriver
     }
 
     public async Task<IProcessInstance> CreateInstanceAsync(ProcessContract processContract, Guid processInstanceId,
-        CancellationToken cancellationToken = default)
+        ProcessParameters parameters, CancellationToken cancellationToken = default)
     {
-        var processInstance = await _processFactory.CreateProcessInstance(processInstanceId, processContract);
+        var processInstance =
+            await _processFactory.CreateProcessInstance(processInstanceId, processContract, parameters);
         return processInstance;
     }
 
-    public async Task<ProcessParameters> RunAsync(IProcessInstance processInstance,
+    public async Task<ProcessParameters?> RunAsync(IProcessInstance processInstance, ExecutionOptions executionOptions,
         CancellationToken cancellationToken = default)
     {
         var instance = Unsafe.As<GraphProcessInstance>(processInstance);
-        await instance.StartAsync(cancellationToken);
+        var task = instance.StartAsync(executionOptions, cancellationToken);
+        if (executionOptions.RunInBackground)
+        {
+            var awaiter = task.GetAwaiter();
+            if (awaiter.IsCompleted)
+            {
+                // TODO: Inform ProcessExecutionEngine about execution stopping
+                throw new NotImplementedException();
+            }
+
+            awaiter.OnCompleted(() =>
+            {
+                // TODO: Inform ProcessExecutionEngine about execution stopping
+                throw new NotImplementedException();
+            });
+
+            return null;
+        }
+
+        await task;
         return instance.ProcessRuntime.Parameters;
     }
 }

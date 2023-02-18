@@ -8,10 +8,17 @@ using Asou.EfCore.ProcessPersistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DependencyInjectionExtensions
 {
+    /// <summary>
+    ///     Use EF Core persistence provider
+    /// </summary>
+    /// <param name="services"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
     public static IServiceCollection RegisterAsouEfCorePersistence<T>(this IServiceCollection services)
         where T : DbContext
     {
@@ -24,6 +31,11 @@ public static class DependencyInjectionExtensions
         return services;
     }
 
+    /// <summary>
+    ///     Register ASOU EF Core types
+    /// </summary>
+    /// <param name="modelBuilder"></param>
+    /// <returns></returns>
     public static ModelBuilder RegisterAsouTypes(this ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfiguration(new EventSubscriptionModelConfiguration());

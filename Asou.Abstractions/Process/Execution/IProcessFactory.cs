@@ -5,5 +5,6 @@ namespace Asou.Abstractions.Process.Execution;
 
 public interface IProcessFactory
 {
-    public Task<IProcessInstance> CreateProcessInstance(Guid processInstanceId, ProcessContract processContract);
+    public Task<IProcessInstance> CreateProcessInstance(Guid processInstanceId, ProcessContract processContract,
+        ProcessParameters parameters);
 }

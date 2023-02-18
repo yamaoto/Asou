@@ -1,5 +1,7 @@
-﻿using Asou.Abstractions.ExecutionElements;
+﻿using Asou.Abstractions;
+using Asou.Abstractions.ExecutionElements;
 using Asou.Abstractions.Process.Contract;
+using Asou.Abstractions.Process.Execution;
 using Asou.Abstractions.Process.Instance;
 using Asou.Core.Process;
 using Asou.Core.Process.Binding;
@@ -24,7 +26,8 @@ public class GraphProcessFactory : IGraphProcessFactory
         _parameterDelegateFactory = parameterDelegateFactory;
     }
 
-    public Task<IProcessInstance> CreateProcessInstance(Guid processInstanceId, ProcessContract processContract)
+    public Task<IProcessInstance> CreateProcessInstance(Guid processInstanceId, ProcessContract processContract,
+        ProcessParameters parameters)
     {
         var graphProcessContract = _graphProcessContractRepository.GetGraphProcessContract(
             processContract.ProcessContractId,
@@ -62,6 +65,11 @@ public class GraphProcessFactory : IGraphProcessFactory
         };
         var processInstance = new GraphProcessInstance(processInstanceId, graphProcessContract.ProcessContract,
             processRuntime, startNode, nodes.Values.ToArray(), graphProcessContract.PersistenceType, scope);
+
+        foreach (var (parameter, value) in parameters)
+        {
+            processInstance.ProcessRuntime.SetParameter(parameter, AsouTypes.UnSet, value);
+        }
 
         return Task.FromResult((IProcessInstance)processInstance);
     }

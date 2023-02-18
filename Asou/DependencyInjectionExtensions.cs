@@ -1,10 +1,7 @@
 using Asou;
-using Asou.Abstractions.Events;
-using Asou.Core;
-using Asou.Core.Process.Binding;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DependencyInjectionExtensions
@@ -12,15 +9,13 @@ public static class DependencyInjectionExtensions
     public static IServiceCollection AddAsou<TDbContext>(this IServiceCollection services)
         where TDbContext : DbContext
     {
-        // Register ASOU core services
-        services.TryAddSingleton<ISubscriptionManager, SubscriptionManager>();
-        services.TryAddSingleton<ProcessExecutionEngine>();
-        services.TryAddSingleton<IParameterDelegateFactory, ParameterDelegateFactory>();
+        // Register ASOU Core services
+        services.RegisterAsouCoreServices();
 
-        // Add ASOU engine
+        // Register ASOU Graph engine
         services.RegisterAsouGraphEngine();
 
-        // Add ASOU InMemory event driver
+        // Register ASOU InMemory event driver
         services.RegisterAsouInMemoryEventDriver();
 
         // Use EF Core persistence provider

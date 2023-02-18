@@ -5,5 +5,5 @@ public record ProcessParameterPersistentModel
     Guid ProcessInstanceId
 )
 {
-    public string JsonContent { get; set; }
+    public required string JsonContent { get; set; }
 }

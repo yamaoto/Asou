@@ -3,7 +3,8 @@ using Asou.Abstractions.Events;
 using Asou.Abstractions.Process.Contract;
 using Asou.Abstractions.Process.Execution;
 using Asou.Abstractions.Process.Instance;
-using Microsoft.Extensions.DependencyInjection;
+using Asou.Core.Commands;
+using Asou.Core.Commands.Infrastructure;
 using Microsoft.Extensions.Logging;
 
 namespace Asou.Core;
@@ -16,158 +17,18 @@ public class ProcessExecutionEngine
     // TODO: Handle instance deletion after execution done in _instances
     private readonly Dictionary<Guid, IProcessInstance> _instances = new();
     private readonly ILogger<ProcessExecutionEngine> _logger;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly ScopedCqrsRunner _scopedCqrsRunner;
 
     public ProcessExecutionEngine(
-        IServiceProvider serviceProvider,
         IEnumerable<IInitializeHook> initializers,
         IProcessExecutionDriver driver,
-        ILogger<ProcessExecutionEngine> logger
-    )
+        ILogger<ProcessExecutionEngine> logger,
+        ScopedCqrsRunner scopedCqrsRunner)
     {
-        _serviceProvider = serviceProvider;
         _initializers = initializers;
         _driver = driver;
         _logger = logger;
-    }
-
-    public async Task HandleEventAsync(EventSubscriptionModel subscription, EventRepresentation eventRepresentation,
-        CancellationToken cancellationToken = default)
-    {
-        // Check if instance is active
-        if (!_instances.TryGetValue(subscription.ProcessInstanceId, out var instance))
-        {
-            // TODO: Resume instance if not present
-            throw new NotImplementedException();
-        }
-
-        await instance.HandleSubscriptionEventAsync(subscription, eventRepresentation, cancellationToken);
-    }
-
-    public async Task<ProcessParameters> CreateAndExecuteAsync(Guid processContractId, ProcessParameters parameters,
-        CancellationToken cancellationToken = default)
-    {
-        // TODO: Add parameter to control TAP awaiting processes with  asynchronous resume
-
-        // Use scoped repository
-        using var scope = _serviceProvider.CreateScope();
-        var processContractRepository = scope.ServiceProvider.GetRequiredService<IProcessContractRepository>();
-        var processContract =
-            await processContractRepository.GetActiveProcessContractAsync(processContractId);
-
-        if (processContract == null)
-        {
-            throw new Exception("processContract not exists");
-        }
-
-        return await ExecuteAsync(processContract, Guid.NewGuid(), parameters, true, cancellationToken);
-    }
-
-    public async Task<ProcessParameters> CreateAndExecuteAsync(Guid processContractId, Guid processVersionId,
-        int versionNumber,
-        ProcessParameters parameters,
-        CancellationToken cancellationToken = default)
-    {
-        // TODO: Add parameter to control TAP awaiting processes with  asynchronous resume
-
-        // Use scoped repository
-        using var scope = _serviceProvider.CreateScope();
-        var processContractRepository = scope.ServiceProvider.GetRequiredService<IProcessContractRepository>();
-        var processContract =
-            await processContractRepository.GetProcessContractAsync(processContractId, processVersionId,
-                versionNumber);
-
-        if (processContract == null)
-        {
-            throw new Exception("processContract not exists");
-        }
-
-        return await ExecuteAsync(processContract, Guid.NewGuid(), parameters, true, cancellationToken);
-    }
-
-    private async Task<ProcessParameters> ExecuteAsync(ProcessContract processContract, Guid processInstanceId,
-        ProcessParameters parameters, bool createNew, CancellationToken cancellationToken = default)
-    {
-        // TODO: Add parameter to control TAP awaiting processes with  asynchronous resume
-
-        var instance = await _driver.CreateInstanceAsync(processContract, processInstanceId, cancellationToken);
-        _instances[instance.Id] = instance;
-        var state = ProcessInstanceState.New;
-
-        // use scoped repository
-        var scope = _serviceProvider.CreateScope();
-        var processInstanceRepository = scope.ServiceProvider.GetRequiredService<IProcessInstanceRepository>();
-        if (instance.PersistenceType != PersistenceType.No && createNew)
-        {
-            await processInstanceRepository.CreateInstanceAsync(instance.Id,
-                instance.ProcessContract.ProcessContractId, instance.ProcessContract.ProcessVersionId,
-                instance.ProcessContract.VersionNumber, instance.PersistenceType, state, cancellationToken);
-        }
-
-        foreach (var (parameter, value) in parameters)
-        {
-            instance.ProcessRuntime.SetParameter(parameter, AsouTypes.UnSet, value);
-        }
-
-        try
-        {
-            state = ProcessInstanceState.Running;
-            if (instance.PersistenceType != PersistenceType.No)
-            {
-                await processInstanceRepository.UpdateStateInstanceAsync(instance.Id, state, cancellationToken);
-            }
-
-            var result = await _driver.RunAsync(instance, cancellationToken);
-            state = ProcessInstanceState.Finished;
-            return result;
-        }
-        catch (Exception e)
-        {
-            state = ProcessInstanceState.Error;
-            // TODO: Provide error information to process instance
-            _logger.LogError(e, "Process {ProcessContractName} ID {ProcessInstanceId} thrown error",
-                instance.ProcessContract.Name, instance.Id);
-            throw;
-        }
-        finally
-        {
-            if (instance.PersistenceType != PersistenceType.No)
-            {
-                await processInstanceRepository.UpdateStateInstanceAsync(instance.Id, state, cancellationToken);
-            }
-
-            scope.Dispose();
-        }
-    }
-
-    private async Task ResumeRunningProcessesAsync(CancellationToken cancellationToken = default)
-    {
-        // Use scoped repositories
-        using var scope = _serviceProvider.CreateScope();
-        var processInstanceRepository = scope.ServiceProvider.GetRequiredService<IProcessInstanceRepository>();
-        var processContractRepository = scope.ServiceProvider.GetRequiredService<IProcessContractRepository>();
-        var processExecutionPersistenceRepository =
-            scope.ServiceProvider.GetRequiredService<IProcessExecutionPersistenceRepository>();
-        var instances = await processInstanceRepository.GetARunningInstancesAsync(cancellationToken);
-        var tasks = new List<Task<ProcessParameters>>();
-        foreach (var instance in instances)
-        {
-            var processContract = await processContractRepository.GetProcessContractAsync(instance.ProcessContractId,
-                instance.ProcessVersionId, instance.Version);
-            if (processContract == null)
-            {
-                // TODO: Log warn event
-                continue;
-            }
-
-            var parameters =
-                await processExecutionPersistenceRepository.GetProcessParametersAsync(instance.Id, cancellationToken);
-
-            // Execute without awaiting asynchronous task based operation
-            var task = ExecuteAsync(processContract, instance.Id, new ProcessParameters(parameters), false,
-                cancellationToken);
-            tasks.Add(task);
-        }
+        _scopedCqrsRunner = scopedCqrsRunner;
     }
 
     public async Task InitializeAsync()
@@ -184,13 +45,125 @@ public class ProcessExecutionEngine
 
     public async Task StopExecutionAsync(CancellationToken cancellationToken)
     {
-        using var scope = _serviceProvider.CreateScope();
-        var processExecutionPersistenceRepository =
-            scope.ServiceProvider.GetRequiredService<IProcessExecutionPersistenceRepository>();
-        foreach (var (instanceId, instance) in _instances.Where(w => w.Value.PersistenceType != PersistenceType.No))
+        var storeProcessParametersArray = _instances
+            .Where(w => w.Value.PersistenceType != PersistenceType.No)
+            .Select(s => new StoreProcessParameters(s.Key, s.Value.ProcessRuntime.Parameters.ToValueContainerMap()))
+            .ToArray();
+        using var storeProcessParametersCommand = _scopedCqrsRunner.Get<StoreProcessParametersCommand>();
+        await storeProcessParametersCommand.Handler.ActivateAsync(storeProcessParametersArray, cancellationToken);
+    }
+
+    public async Task<ProcessParameters?> CreateAndExecuteAsync(Guid processContractId, ProcessParameters parameters,
+        ExecutionOptions? executionOptions = null, CancellationToken cancellationToken = default)
+    {
+        using var getProcessContractRequest = _scopedCqrsRunner.Get<GetProcessContractRequest>();
+        var processContract =
+            await getProcessContractRequest.Handler.RequestAsync(processContractId, cancellationToken);
+
+        if (processContract == null)
         {
-            var parameters = instance.ProcessRuntime.Parameters.ToValueContainerMap();
-            await processExecutionPersistenceRepository.StoreProcessParameterAsync(instanceId, parameters,
+            throw new Exception("processContract not exists");
+        }
+
+        return await ExecuteAsync(processContract, Guid.NewGuid(), parameters,
+            executionOptions ?? new ExecutionOptions(), cancellationToken);
+    }
+
+    public async Task<ProcessParameters?> CreateAndExecuteAsync(Guid processContractId, Guid processVersionId,
+        int versionNumber,
+        ProcessParameters parameters,
+        ExecutionOptions? executionOptions = null,
+        CancellationToken cancellationToken = default)
+    {
+        using var getProcessContractRequest = _scopedCqrsRunner.Get<GetProcessContractRequest>();
+        var processContract =
+            await getProcessContractRequest.Handler.RequestAsync(processContractId, cancellationToken);
+
+        if (processContract == null)
+        {
+            throw new Exception("processContract not exists");
+        }
+
+        return await ExecuteAsync(processContract, Guid.NewGuid(), parameters,
+            executionOptions ?? new ExecutionOptions(), cancellationToken);
+    }
+
+    private async Task<ProcessParameters?> ExecuteAsync(ProcessContract processContract, Guid processInstanceId,
+        ProcessParameters parameters, ExecutionOptions executionOptions, CancellationToken cancellationToken = default)
+    {
+        var instance =
+            await _driver.CreateInstanceAsync(processContract, processInstanceId, parameters, cancellationToken);
+        _instances[instance.Id] = instance;
+        var state = ProcessInstanceState.New;
+        using var insertProcessInstanceStateCommand = _scopedCqrsRunner.Get<InsertProcessInstanceStateCommand>();
+        await insertProcessInstanceStateCommand.Handler.ActivateAsync(instance, state,
+            cancellationToken);
+        using var updateProcessInstanceStateCommand = _scopedCqrsRunner.Get<UpdateProcessInstanceStateCommand>();
+        try
+        {
+            state = ProcessInstanceState.Running;
+            await updateProcessInstanceStateCommand.Handler.ActivateAsync(instance.Id, state, cancellationToken);
+
+            var result = await _driver.RunAsync(instance, executionOptions, cancellationToken);
+            state = ProcessInstanceState.Finished;
+            return result;
+        }
+        catch (Exception e)
+        {
+            state = ProcessInstanceState.Error;
+            // TODO: Provide error information to process instance
+            _logger.LogError(e, "Process {ProcessContractName} ID {ProcessInstanceId} thrown error",
+                instance.ProcessContract.Name, instance.Id);
+            throw;
+        }
+        finally
+        {
+            await updateProcessInstanceStateCommand.Handler.ActivateAsync(instance.Id, state, cancellationToken);
+        }
+    }
+
+    private async Task ResumeExecutionAsync(ProcessContract processContract, Guid processInstanceId,
+        ProcessParameters parameters, CancellationToken cancellationToken = default)
+    {
+        var instance =
+            await _driver.CreateInstanceAsync(processContract, processInstanceId, parameters, cancellationToken);
+        _instances[instance.Id] = instance;
+        using var updateProcessInstanceStateCommand = _scopedCqrsRunner.Get<UpdateProcessInstanceStateCommand>();
+        // Override any other state
+        await updateProcessInstanceStateCommand.Handler.ActivateAsync(instance.Id, ProcessInstanceState.Running,
+            cancellationToken);
+
+        // Execute without awaiting asynchronous task based operation
+        await _driver.RunAsync(instance, new ExecutionOptions(true), cancellationToken);
+    }
+
+    internal async Task HandleEventAsync(EventSubscriptionModel subscription, EventRepresentation eventRepresentation,
+        CancellationToken cancellationToken = default)
+    {
+        // Check if instance is active
+        if (!_instances.TryGetValue(subscription.ProcessInstanceId, out var instance))
+        {
+            // TODO: Resume instance if not present
+            throw new NotImplementedException();
+        }
+
+        await instance.HandleSubscriptionEventAsync(subscription, eventRepresentation, cancellationToken);
+    }
+
+    private async Task ResumeRunningProcessesAsync(CancellationToken cancellationToken = default)
+    {
+        using var getProcessesForResumeRequest = _scopedCqrsRunner.Get<GetProcessesForResumeRequest>();
+        var resumeProcessRecords = getProcessesForResumeRequest.Handler.GetAsyncEnumerable(cancellationToken);
+        await foreach (var (instance, processContract, parameters) in resumeProcessRecords.WithCancellation(
+                           cancellationToken))
+        {
+            if (processContract == null)
+            {
+                // TODO: Log warn event
+                continue;
+            }
+
+            await ResumeExecutionAsync(processContract, instance.Id, new ProcessParameters(parameters),
                 cancellationToken);
         }
     }

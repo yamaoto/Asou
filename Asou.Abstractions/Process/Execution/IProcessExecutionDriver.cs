@@ -6,8 +6,8 @@ namespace Asou.Abstractions.Process.Execution;
 public interface IProcessExecutionDriver
 {
     Task<IProcessInstance> CreateInstanceAsync(ProcessContract processContract, Guid processInstanceId,
-        CancellationToken cancellationToken = default);
+        ProcessParameters parameters, CancellationToken cancellationToken = default);
 
-    Task<ProcessParameters> RunAsync(IProcessInstance processInstance,
+    Task<ProcessParameters?> RunAsync(IProcessInstance processInstance, ExecutionOptions executionOptions,
         CancellationToken cancellationToken = default);
 }

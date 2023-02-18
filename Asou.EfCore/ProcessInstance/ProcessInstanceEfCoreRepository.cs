@@ -37,7 +37,7 @@ public class ProcessInstanceEfCoreRepository : IProcessInstanceRepository
         }
     }
 
-    public async Task<IEnumerable<ProcessInstanceModel>> GetARunningInstancesAsync(
+    public async Task<IEnumerable<ProcessInstanceModel>> GetRunningInstancesAsync(
         CancellationToken cancellationToken = default)
     {
         var processInstances = await _processInstances

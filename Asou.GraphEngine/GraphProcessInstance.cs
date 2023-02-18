@@ -101,10 +101,12 @@ public class GraphProcessInstance : IProcessInstance
         }
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken = default)
+    public async Task StartAsync(ExecutionOptions executionOptions, CancellationToken cancellationToken = default)
     {
-        await ExecuteAsync(Guid.NewGuid(), StartNode, ExecutionStatuses.Execute, cancellationToken);
+        await ExecuteAsync(executionOptions, Guid.NewGuid(), StartNode, ExecutionStatuses.Execute,
+            cancellationToken);
     }
+
 
     /// <summary>
     ///     Resume execution after system restart
@@ -177,8 +179,8 @@ public class GraphProcessInstance : IProcessInstance
         return ExecutionStatuses.Exit;
     }
 
-    private async Task ExecuteAsync(Guid threadId, ElementNode node, int initialState = ExecutionStatuses.Execute,
-        CancellationToken cancellationToken = default)
+    private async Task ExecuteAsync(ExecutionOptions executionOptions, Guid threadId, ElementNode node,
+        int initialState = ExecutionStatuses.Execute, CancellationToken cancellationToken = default)
     {
         _executionQueue.Enqueue(new ExecutionElement(node.Id, threadId, initialState));
         while (true)
@@ -200,7 +202,6 @@ public class GraphProcessInstance : IProcessInstance
             await DequeueAndExecuteAsync(cancellationToken);
         }
         // end of execution
-        // TODO: Inform ProcessExecutionEngine about execution stopping
     }
 
     private async Task DequeueAndExecuteAsync(CancellationToken cancellationToken = default)
