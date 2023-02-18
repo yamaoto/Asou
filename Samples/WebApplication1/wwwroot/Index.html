@@ -46,7 +46,7 @@
         }
 
         #app {
-            max-width: 1280px;
+            max-width: 1620px;
             margin: 0 auto;
             padding: 2rem;
         }
@@ -112,7 +112,59 @@
                 background-color: #f9f9f9;
             }
         }
+
+        .diagram {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: baseline;
+            justify-content: flex-start;
+            margin: 2em 0;
+        }
+
+        .diagram .step {
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background-color: #1a1a1a;
+            padding: 25px;
+            margin: 15px 35px 0 0;
+            cursor: default;
+            min-height: 250px;
+            min-width: 250px;
+            max-width: 300px;
+            position: relative;
+        }
+
+        .diagram .step:after {
+            content: "➡️";
+            display: block;
+            position: absolute;
+            top: 100px;
+            right: -30px;
+        }
+
+        .diagram .step:last-child:after {
+            content: "";
+        }
+
+        .diagram .step ul {
+            margin: 15px 0 0 0;
+            padding: 0;
+        }
+        .inline .hljs {
+            display: inline;
+            background-color: #242424;
+            margin: 0;
+            padding: 0;
+        }
+        .diagram .step .inline .hljs {
+            background-color: #1a1a1a;
+        }
+        #ConditionalStep {
+            max-width: 400px
+        }
     </style>
+    <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.7.0/styles/dark.min.css">
 </head>
 <body id="app">
 
@@ -127,26 +179,125 @@
             definition of
             The Sampple process.
         </p>
+        <pre><code class="language-csharp">
+public class SampleProcessDefinition : IProcessDefinition
+{
+    public const string ProcessId = "c380b7f4-2a76-44fc-9d5d-ecc7c105969b";
+    public Guid Id =&gt; new(ProcessId);
+
+    public Guid VersionId =&gt; new("2a8038b9-921e-4aaa-a72d-f85d6ff512e8");
+
+    public int Version =&gt; 1;
+
+    public string Name =&gt; "SampleProcess";
+
+    public void Describe(GraphProcessContract builder)
+    {
+        builder.StartFrom&lt;DoSimpleStep&gt;()
+            // Bind step parameter from process parameter with getter and setter
+            .WithParameter&lt;DoSimpleStep, string&gt;("Parameter1",
+                instance =&gt; (string)instance.ProcessRuntime.Parameters["Parameter1"]!,
+                (instance, value) =&gt; instance.ProcessRuntime.Parameters["Parameter1"] = value)
+            // Bind step parameter from process parameter with setter only
+            .WithParameter&lt;DoSimpleStep, string&gt;("Parameter2",
+                setter: (instance, value) =&gt; instance.ProcessRuntime.Parameters["Parameter2"] = value)
+            .Then&lt;AsynchronousResumeStep&gt;()
+            .Then&lt;ConditionalStep&gt;()
+            // Bind step parameter from process parameter with getter only
+            .WithParameter&lt;DoSimpleStep, string&gt;("Parameter2",
+                instance => (string)instance.ProcessRuntime.Parameters["Parameter2"]!
+                );
+
+        builder.Conditional&lt;ConditionalStep, EndStep&gt;("ToExit");
+        builder.Conditional&lt;ConditionalStep, DoSimpleStep&gt;("TryAgain");
+    }
+}
+</code>
+</pre>
     </section>
 
     <section>
         <form action="/SampleProcess" method="POST" target="_blank">
             <h2>SampleProcess</h2>
-            Try to
-            <button>Execute</button>
-            new instance.
+            <p>
+                This is Sample process hello world example with ASOU. <br/>
+                We starting with parameters:
+            </p>
+            <ul>
+                <li>
+                    <pre class="inline"><code class="language-csharp">Parameter1 = "Hello World"</code></pre>
+                </li>
+                <li>
+                    <pre class="inline"><code class="language-csharp">Parameter2 = null</code></pre>
+                </li>
+            </ul>
+            <div class="diagram">
+                <div class="step">
+                    <a>DoSimpleStep</a>
+                    <p>Perform action: </p>
+                    <ul>
+                        <li>
+                            <pre class="inline"><code class="language-csharp">Parameter2 = Parameter1</code></pre>
+                        </li>
+                        <li>
+                            <pre class="inline"><code class="language-csharp">Parameter1 = null</code></pre>
+                        </li>
+                    </ul>
+                </div>
+                <div class="step">
+                    <a>AsynchronousResumeStep</a>
+                    <p>
+                        Subscribe to event and wait for resume.
+                    </p>
+                    <ul>
+                        <li>
+                            <pre class="inline"><code class="language-csharp">EventType = "MyEventTpe"</code></pre>
+                        </li>
+
+                        <li>
+                            <pre class="inline"><code class="language-csharp">EvenSubject = "MyEventSubject"</code></pre>
+                        </li>
+                    </ul>
+                    <p>
+                        To simulate real case, we emit the stub event after <code>500ms</code>
+                    </p>
+                </div>
+                <div id="ConditionalStep" class="step">
+                    <a>ConditionalStep</a>
+                    <p>
+                        Continue to next step if <code>Parameter2</code> is not empty. Else try again from DoSimpleStep.
+                        <br/>
+                        Conditions:
+                    </p>
+                    <ul>
+                        <li>
+                            <pre class="inline"><code class="language-csharp">"ToExit" => Parameter2 == "Hello World"</code></pre>
+                        </li>
+                        <li>
+                            <pre class="inline"><code class="language-csharp">"TryAgain" => Parameter2 != "Hello World"</code></pre>
+                        </li>
+                    </ul>
+                </div>
+                <div class="step">
+                    <a>EndStep</a>
+                    <p>
+                        Stop process execution.
+                    </p>
+                </div>
+            </div>
+            <p>
+                Try to test SampleProcess process:
+                <button>Execute</button> <br/>
+                After execution you can see the process execution log in <a href="/data" target="_blank">Internal data</a> page.
+            </p>
+
         </form>
     </section>
-
-    <section>
-        <h2>Debug data</h2>
-        <ul>
-            <li>
-                <a href="/data" target="_blank">Internal data</a>
-            </li>
-        </ul>
-    </section>
 </div>
-
+<script src="https://unpkg.com/@highlightjs/cdn-assets@11.7.0/highlight.min.js"></script>
+<script src="https://unpkg.com/@highlightjs/cdn-assets@11.7.0/languages/csharp.min.js"></script>
+<script>
+    hljs.highlightAll();
+</script>
 </body>
 </html>

@@ -38,6 +38,7 @@ app.MapPost("/SampleProcess",
     async (ProcessExecutionEngine processExecutionEngine, CancellationToken cancellationToken) =>
     {
         var timer = Stopwatch.StartNew();
+        // Execute SampleProcess with parameters Parameter1 = "Hello World" and Parameter2 = ""
         var result = await processExecutionEngine.CreateAndExecuteAsync(new Guid(SampleProcessDefinition.ProcessId),
             new ProcessParameters { { "Parameter1", "Hello World" }, { "Parameter2", "" } },
             new ExecutionOptions(false), cancellationToken);
