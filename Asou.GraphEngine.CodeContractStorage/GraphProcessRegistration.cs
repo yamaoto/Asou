@@ -41,6 +41,8 @@ public class GraphProcessRegistration : IGraphProcessRegistration
 
     public bool ValidateGraph(GraphProcessContract graphProcessContract, bool throwError)
     {
+        // Using quick-union algorithm with path compression (depth of any node is almost about 1 and pointing directly to the root)
+        // https://en.wikipedia.org/wiki/Disjoint-set_data_structure
         var ids = new int[graphProcessContract.Nodes.Count];
         var map = new Dictionary<Guid, int>(graphProcessContract.Nodes.Count);
         for (var i = 0; i < ids.Length; i++)
@@ -50,7 +52,7 @@ public class GraphProcessRegistration : IGraphProcessRegistration
             map[graphProcessContract.Nodes[key].Id] = i;
         }
 
-        // optimal capacity is 4
+        // optimal initial capacity is 4
         var startPoints = new List<int>(4);
         foreach (var edge in graphProcessContract.Graph)
         {
@@ -74,6 +76,7 @@ public class GraphProcessRegistration : IGraphProcessRegistration
             }
         }
 
+        // Reorder graph root to new root with start point
         foreach (var point in startPoints)
         {
             if (ids[point] != point)
@@ -82,6 +85,7 @@ public class GraphProcessRegistration : IGraphProcessRegistration
             }
         }
 
+        // check if all nodes are connected to start points
         var result = true;
         for (var i = 0; i < ids.Length; i++)
         {
