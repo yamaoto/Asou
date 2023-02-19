@@ -19,14 +19,14 @@ public class BindingTest
     public void GetPropertyValue()
     {
         // Arrange
-        var testElement = new TestElement();
+        var testElement = new BindingTestElement();
         var parameterDelegateFactory = new ParameterDelegateFactory();
-        parameterDelegateFactory.CreateDelegates<TestElement, string>("ParameterA");
+        parameterDelegateFactory.CreateDelegates<BindingTestElement, string>("ParameterA");
         var processMachine = new ProcessRuntime(parameterDelegateFactory, nameof(BindingTest))
         {
             ComponentFactory = _ => testElement
         };
-        processMachine.CreateComponent(new Guid("266090b8-e7d4-4a2f-8b3b-ef622f137ab4"), typeof(TestElement));
+        processMachine.CreateComponent(new Guid("266090b8-e7d4-4a2f-8b3b-ef622f137ab4"), typeof(BindingTestElement));
         var stopWatch = Stopwatch.StartNew();
 
         // Act
@@ -43,15 +43,15 @@ public class BindingTest
     public void SetPropertyValue()
     {
         // Arrange
-        var testElement = new TestElement();
+        var testElement = new BindingTestElement();
         var parameterDelegateFactory = new ParameterDelegateFactory();
-        parameterDelegateFactory.CreateDelegates<TestElement, string>("ParameterA");
+        parameterDelegateFactory.CreateDelegates<BindingTestElement, string>("ParameterA");
         var processMachine = new ProcessRuntime(parameterDelegateFactory, nameof(BindingTest))
         {
             ComponentFactory = _ => testElement
         };
         processMachine.CreateComponent(new Guid("266090b8-e7d4-4a2f-8b3b-ef622f137ab4"),
-            typeof(TestElement));
+            typeof(BindingTestElement));
         var stopWatch = Stopwatch.StartNew();
 
         // Act
@@ -64,7 +64,7 @@ public class BindingTest
         Assert.Equal("WORLD", testElement.ParameterA);
     }
 
-    private sealed class TestElement : BaseElement
+    public sealed class BindingTestElement : BaseElement
     {
         // ReSharper disable once AutoPropertyCanBeMadeGetOnly.Local
         public string ParameterA { get; set; } = "HELLO";

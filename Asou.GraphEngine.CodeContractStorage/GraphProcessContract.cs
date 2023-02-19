@@ -1,26 +1,44 @@
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
+using System.Text;
 using Asou.Abstractions.ExecutionElements;
-using Asou.Abstractions.Process;
+using Asou.Abstractions.Process.Contract;
+using Asou.Abstractions.Process.Instance;
+using Microsoft.Extensions.Logging;
 
 namespace Asou.GraphEngine.CodeContractStorage;
 
 public class GraphProcessContract
 {
+    private readonly ILogger<GraphProcessContract> _logger;
     internal readonly List<ConnectionBuilderInfo> Graph = new();
     internal readonly Dictionary<string, ElementNode> Nodes = new();
 
     private string? _currentElement;
+    internal PersistenceType PersistenceType = PersistenceType.Stateful;
+
+    public GraphProcessContract(ILogger<GraphProcessContract> logger)
+    {
+        _logger = logger;
+    }
 
     public required ProcessContract ProcessContract { get; init; }
 
     public static GraphProcessContract Create(Guid processContractId, Guid processVersionId, int versionNumber,
-        string name)
+        string name, ILogger<GraphProcessContract> logger
+    )
     {
-        var flow = new GraphProcessContract
+        var flow = new GraphProcessContract(logger)
         {
             ProcessContract = new ProcessContract(processContractId, processVersionId, versionNumber, name)
         };
         return flow;
+    }
+
+    public GraphProcessContract SetPersistence(PersistenceType persistenceType)
+    {
+        PersistenceType = persistenceType;
+        return this;
     }
 
     public GraphProcessContract StartFrom<T>(string? to = null, Guid? toId = null) where T : BaseElement
@@ -116,7 +134,18 @@ public class GraphProcessContract
     private string SetNode<T>(string? name = null, Guid? id = null) where T : BaseElement
     {
         var nameVar = name ?? typeof(T).Name;
-        var idVar = id ?? Guid.NewGuid();
+        Guid idVar;
+        if (PersistenceType != PersistenceType.No && id == null)
+        {
+            _logger.LogInformation("Id is not set for {ElementName}, Id will set by MD5", nameVar);
+            var hash =
+                ((HashAlgorithm)CryptoConfig.CreateFromName("MD5")!).ComputeHash(Encoding.UTF8.GetBytes(nameVar));
+            idVar = new Guid(hash);
+        }
+        else
+        {
+            idVar = id ?? Guid.NewGuid();
+        }
 
         if (!Nodes.TryGetValue(nameVar, out var element))
         {

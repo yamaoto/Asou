@@ -20,10 +20,10 @@ public class AsynchronousResumeStep : BaseElement, IAfterExecution, IAsynchronou
     public Task<IEnumerable<EventSubscription>> ConfigureSubscriptionsAsync(
         CancellationToken cancellationToken = default)
     {
-        // Subscribe to event with type MyEventTpe and subject MyEventSubject
+        // Subscribe to event with type MyEventType and subject MyEventSubject
         return Task.FromResult((IEnumerable<EventSubscription>)new[]
         {
-            new EventSubscription("", "MyEventTpe", "MyEventSubject", EventSubscriptionType.AsynchronousResume)
+            new EventSubscription("", "MyEventType", "MyEventSubject", EventSubscriptionType.AsynchronousResume)
         });
     }
 
@@ -41,18 +41,6 @@ public class AsynchronousResumeStep : BaseElement, IAfterExecution, IAsynchronou
 
     public override Task ExecuteAsync(CancellationToken cancellationToken = default)
     {
-        var cts = new CancellationTokenSource();
-        // Execute background task to simulate incoming event
-        Task.Run(async () =>
-        {
-            Console.WriteLine("AsynchronousResumeStep 1 {0}", DateTime.Now);
-            await Task.Delay(500, cts.Token);
-            Console.WriteLine("AsynchronousResumeStep 2 {0}", DateTime.Now);
-            await _eventDriver.PublishAsync(
-                new EventRepresentation(Guid.NewGuid().ToString(),
-                    "urn:WebApplication1.SampleProcess.AsynchronousResumeStep",
-                    "MyEventTpe", "MyEventSubject", DateTime.Now, null), cts.Token);
-        }, cts.Token);
         return Task.CompletedTask;
     }
 }

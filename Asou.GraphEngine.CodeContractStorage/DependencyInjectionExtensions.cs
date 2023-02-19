@@ -1,14 +1,20 @@
 using Asou.Abstractions;
-using Asou.Abstractions.Process;
-using Asou.Abstractions.Repositories;
+using Asou.Abstractions.Process.Contract;
+using Asou.Abstractions.Process.Execution;
 using Asou.GraphEngine;
 using Asou.GraphEngine.CodeContractStorage;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DependencyInjectionExtensions
 {
+    /// <summary>
+    ///     Register ASOU Graph engine
+    /// </summary>
+    /// <param name="services"></param>
+    /// <returns></returns>
     public static IServiceCollection RegisterAsouGraphEngine(this IServiceCollection services)
     {
         services.TryAddTransient<IGraphProcessFactory, GraphProcessFactory>();

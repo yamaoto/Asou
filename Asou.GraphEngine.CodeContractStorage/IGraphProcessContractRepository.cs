@@ -1,4 +1,4 @@
-using Asou.Abstractions.Repositories;
+using Asou.Abstractions.Process.Contract;
 
 namespace Asou.GraphEngine.CodeContractStorage;
 

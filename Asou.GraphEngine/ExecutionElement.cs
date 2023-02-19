@@ -1,6 +1,6 @@
 namespace Asou.GraphEngine;
 
-public struct ExecutionElement
+public class ExecutionElement
 {
     public ExecutionElement(Guid elementId, Guid threadId, int executionState)
     {

@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 using Asou.Abstractions;
 using Asou.Abstractions.Events;
 using Asou.Abstractions.ExecutionElements;
-using Asou.Abstractions.Process;
+using Asou.Abstractions.Process.Execution;
 using Asou.Core.Process.Binding;
 using Asou.Core.Process.Delegates;
 
@@ -38,7 +38,7 @@ public sealed class ProcessRuntime : IProcessRuntime
 
     public void LetParameter(string parameterName)
     {
-        Parameters[parameterName] = new object();
+        Parameters[parameterName] = null;
     }
 
     public void DeleteParameter(string parameterName)

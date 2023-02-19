@@ -6,7 +6,7 @@ namespace Asou.Abstractions.Container;
 /// <remarks>
 ///     This class is used to store the value of a property in an object.
 /// </remarks>
-public class ValueContainer : IContainer
+public sealed class ValueContainer : IContainer
 {
     /// <summary>Serialized string of container stored in JSON format.</summary>
     public required string Value { get; init; }
@@ -44,11 +44,21 @@ public class ValueContainer : IContainer
             case AsouTypes.Guid:
                 return JsonSerializer.Deserialize<Guid>(Value);
             case AsouTypes.Object:
-                return JsonSerializer.Deserialize(Value, System.Type.GetType(ObjectType)!);
+                return DeserializeObject();
             case AsouTypes.ObjectLink:
                 throw new NotImplementedException();
             default:
                 throw new ArgumentOutOfRangeException();
         }
+    }
+
+    private object? DeserializeObject()
+    {
+        if (string.IsNullOrEmpty(ObjectType))
+        {
+            return null;
+        }
+
+        return JsonSerializer.Deserialize(Value, System.Type.GetType(ObjectType)!);
     }
 }

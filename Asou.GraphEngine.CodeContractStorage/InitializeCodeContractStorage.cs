@@ -1,18 +1,22 @@
 using Asou.Abstractions;
+using Microsoft.Extensions.Logging;
 
 namespace Asou.GraphEngine.CodeContractStorage;
 
 public class InitializeCodeContractStorage : IInitializeHook
 {
     private readonly IGraphProcessRegistration _graphProcessRegistration;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly IEnumerable<IProcessDefinition> _processDefinitions;
 
     public InitializeCodeContractStorage(
         IGraphProcessRegistration graphProcessRegistration,
-        IEnumerable<IProcessDefinition> processDefinitions)
+        IEnumerable<IProcessDefinition> processDefinitions,
+        ILoggerFactory loggerFactory)
     {
         _graphProcessRegistration = graphProcessRegistration;
         _processDefinitions = processDefinitions;
+        _loggerFactory = loggerFactory;
     }
 
     public Task Initialize(CancellationToken cancellationToken = default)
@@ -20,9 +24,9 @@ public class InitializeCodeContractStorage : IInitializeHook
         foreach (var processDefinition in _processDefinitions)
         {
             var builder = GraphProcessContract.Create(processDefinition.Id, processDefinition.VersionId,
-                processDefinition.Version, processDefinition.Name);
+                processDefinition.Version, processDefinition.Name, _loggerFactory.CreateLogger<GraphProcessContract>());
             processDefinition.Describe(builder);
-            _graphProcessRegistration.RegisterFlow(builder);
+            _graphProcessRegistration.RegisterFlow(builder, true, true);
         }
 
         return Task.CompletedTask;
