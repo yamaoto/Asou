@@ -28,7 +28,7 @@ public class SampleProcessDefinition : IProcessDefinition
             // Bind step parameter from process parameter with getter only
             .WithParameter<DoSimpleStep, string>("Parameter2",
                 instance => (string)instance.ProcessRuntime.Parameters["Parameter2"]!
-                );
+            );
 
         builder.Conditional<ConditionalStep, EndStep>("ToExit");
         builder.Conditional<ConditionalStep, DoSimpleStep>("TryAgain");

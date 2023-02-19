@@ -8,8 +8,8 @@ namespace Asou.GraphEngine;
 
 public class GraphProcessExecutionDriver : IProcessExecutionDriver
 {
-    private readonly IProcessFactory _processFactory;
     private readonly ILogger<GraphProcessExecutionDriver> _logger;
+    private readonly IProcessFactory _processFactory;
 
     public GraphProcessExecutionDriver(
         IProcessFactory processFactory,
@@ -23,7 +23,8 @@ public class GraphProcessExecutionDriver : IProcessExecutionDriver
         ProcessParameters parameters, CancellationToken cancellationToken = default)
     {
         var processInstance =
-            await _processFactory.CreateProcessInstance(processInstanceId, processContract, parameters, cancellationToken);
+            await _processFactory.CreateProcessInstance(processInstanceId, processContract, parameters,
+                cancellationToken);
         return processInstance;
     }
 
@@ -53,11 +54,13 @@ public class GraphProcessExecutionDriver : IProcessExecutionDriver
             {
                 if (task.IsFaulted)
                 {
-                    _logger.LogError(task.Exception, "Process execution failed. ProcessInstanceId: {ProcessInstanceId}", instance.Id);
+                    _logger.LogError(task.Exception, "Process execution failed. ProcessInstanceId: {ProcessInstanceId}",
+                        instance.Id);
                     return;
                 }
 
-                _logger.LogDebug("Process execution successfully finished. ProcessInstanceId: {ProcessInstanceId}", instance.Id);
+                _logger.LogDebug("Process execution successfully finished. ProcessInstanceId: {ProcessInstanceId}",
+                    instance.Id);
                 // TODO: Inform Engine to update process instance state
             }
 
@@ -71,10 +74,12 @@ public class GraphProcessExecutionDriver : IProcessExecutionDriver
 
             return null;
         }
+
         try
         {
             await task;
-            _logger.LogDebug("Process execution successfully finished. ProcessInstanceId: {ProcessInstanceId}", instance.Id);
+            _logger.LogDebug("Process execution successfully finished. ProcessInstanceId: {ProcessInstanceId}",
+                instance.Id);
             return instance.ProcessRuntime.Parameters;
         }
         catch (Exception exception)

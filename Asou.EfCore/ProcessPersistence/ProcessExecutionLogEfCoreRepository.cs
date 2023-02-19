@@ -40,7 +40,8 @@ public class ProcessExecutionLogEfCoreRepository : IProcessExecutionLogRepositor
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<ProcessExecutionLogModel>> GetThreadsAsync(Guid processInstanceId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<ProcessExecutionLogModel>> GetThreadsAsync(Guid processInstanceId,
+        CancellationToken cancellationToken = default)
     {
         var query = _processExecutionLogs.AsNoTracking()
             .Where(log => log.ProcessInstanceId == processInstanceId)

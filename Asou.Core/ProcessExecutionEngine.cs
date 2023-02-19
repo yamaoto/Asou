@@ -104,7 +104,7 @@ public class ProcessExecutionEngine
             state = ProcessInstanceState.Running;
             await updateProcessInstanceStateCommand.Handler.ActivateAsync(instance.Id, state, cancellationToken);
 
-            var result = await _driver.RunAsync(instance, executionOptions, cancellationToken: cancellationToken);
+            var result = await _driver.RunAsync(instance, executionOptions, cancellationToken);
             state = ProcessInstanceState.Finished;
             return result;
         }

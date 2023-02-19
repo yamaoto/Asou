@@ -10,23 +10,23 @@ namespace Asou.GraphEngine.CodeContractStorage;
 
 public class GraphProcessContract
 {
+    private readonly ILogger<GraphProcessContract> _logger;
     internal readonly List<ConnectionBuilderInfo> Graph = new();
     internal readonly Dictionary<string, ElementNode> Nodes = new();
 
     private string? _currentElement;
     internal PersistenceType PersistenceType = PersistenceType.Stateful;
 
-    public required ProcessContract ProcessContract { get; init; }
-    private readonly ILogger<GraphProcessContract> _logger;
-
     public GraphProcessContract(ILogger<GraphProcessContract> logger)
     {
         _logger = logger;
     }
 
+    public required ProcessContract ProcessContract { get; init; }
+
     public static GraphProcessContract Create(Guid processContractId, Guid processVersionId, int versionNumber,
         string name, ILogger<GraphProcessContract> logger
-        )
+    )
     {
         var flow = new GraphProcessContract(logger)
         {
@@ -137,8 +137,9 @@ public class GraphProcessContract
         Guid idVar;
         if (PersistenceType != PersistenceType.No && id == null)
         {
-            _logger.LogWarning("Id is not set for {ElementName}, Id will set by MD5", nameVar);
-            var hash = ((HashAlgorithm) CryptoConfig.CreateFromName("MD5")!).ComputeHash(Encoding.UTF8.GetBytes(nameVar));
+            _logger.LogInformation("Id is not set for {ElementName}, Id will set by MD5", nameVar);
+            var hash =
+                ((HashAlgorithm)CryptoConfig.CreateFromName("MD5")!).ComputeHash(Encoding.UTF8.GetBytes(nameVar));
             idVar = new Guid(hash);
         }
         else

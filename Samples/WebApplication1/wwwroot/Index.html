@@ -167,11 +167,12 @@
         #ConditionalStep {
             max-width: 400px
         }
+
         #EndStep {
             max-width: 250px;
         }
     </style>
-    <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.7.0/styles/dark.min.css">
+    <link href="https://unpkg.com/@highlightjs/cdn-assets@11.7.0/styles/dark.min.css" rel="stylesheet">
 </head>
 <body id="app">
 
@@ -268,7 +269,7 @@ public class SampleProcessDefinition : IProcessDefinition
                     ⚠️ To simulate real case, use <code>EmitEvent</code> button below to emit the event.
                 </p>
             </div>
-            <div id="ConditionalStep" class="step">
+            <div class="step" id="ConditionalStep">
                 <a>ConditionalStep</a>
                 <p>
                     Continue to next step if <code>Parameter2</code> is not empty. Else try again from DoSimpleStep.
@@ -285,7 +286,7 @@ public class SampleProcessDefinition : IProcessDefinition
                     </li>
                 </ul>
             </div>
-            <div id="EndStep" class="step">
+            <div class="step" id="EndStep">
                 <a>EndStep</a>
                 <p>
                     Without any action.
@@ -305,13 +306,14 @@ public class SampleProcessDefinition : IProcessDefinition
         </p>
         <p>
         <form action="/EmitEvent" method="POST" target="_blank">
-            <input type="hidden" name="EventType" value="MyEventType"/>
-            <input type="hidden" name="EventSubject" value="MyEventSubject"/>
-            <button>2️⃣ EmitEvent</button> to resume process
+            <input name="EventType" type="hidden" value="MyEventType"/>
+            <input name="EventSubject" type="hidden" value="MyEventSubject"/>
+            <button>2️⃣ EmitEvent</button>
+            to resume process
         </form>
         </p>
         <p>
-            <button>️<a target="_blank" href="/data">3️⃣ Examin execution log</a></button>
+            <button>️<a href="/data" target="_blank">3️⃣ Examin execution log</a></button>
         </p>
 
     </section>

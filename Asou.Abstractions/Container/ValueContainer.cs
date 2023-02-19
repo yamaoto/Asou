@@ -58,7 +58,7 @@ public sealed class ValueContainer : IContainer
         {
             return null;
         }
-        return JsonSerializer.Deserialize(Value, System.Type.GetType(ObjectType)!);
 
+        return JsonSerializer.Deserialize(Value, System.Type.GetType(ObjectType)!);
     }
 }

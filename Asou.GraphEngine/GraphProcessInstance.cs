@@ -130,7 +130,8 @@ public class GraphProcessInstance : IProcessInstance
         foreach (var thread in threads)
         {
             var node = Nodes[thread.ElementId];
-            _executionQueue.Enqueue(new ExecutionElement(thread.ElementId, thread.ThreadId, GetNextState(node, thread.State)));
+            _executionQueue.Enqueue(new ExecutionElement(thread.ElementId, thread.ThreadId,
+                GetNextState(node, thread.State)));
         }
     }
 
@@ -141,7 +142,6 @@ public class GraphProcessInstance : IProcessInstance
 
         if (state == ExecutionStatuses.Execute)
         {
-
             // set declared parameters value from they're getters
             foreach (var parameter in node.Parameters.Where(w => w.Getter != null))
             {
@@ -330,6 +330,7 @@ public class GraphProcessInstance : IProcessInstance
             {
                 throw new Exception("Type IProcessExecutionPersistenceRepository not present in DI container");
             }
+
             await _processExecutionPersistenceRepository.StoreProcessParameterAsync(Id,
                 ProcessRuntime.Parameters.ToValueContainerMap(), cancellationToken);
         }
