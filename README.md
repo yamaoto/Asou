@@ -129,7 +129,7 @@ Features / milestones
 - [x]  Conditional transitions
 - [x]  Parameter binding
 - [x]  Event subsystem and asynchronous resume support
-- [ ]  Process execution and data persistence on restart or failure
+- [x]  Process execution and data persistence on restart or failure
 - [ ]  BPMN flow designer
 - [ ]  BPMN engine. Extend Graph base engine to export BPMN flow to graph contract.
 - [ ]  ContextCall bindings
