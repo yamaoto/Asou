@@ -29,7 +29,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{77D7C2E5
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication1.FunctionalTests", "tests\WebApplication1.FunctionalTests\WebApplication1.FunctionalTests.csproj", "{487A5937-191E-47F4-9CB4-B52360FAD38E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asou.InMemoryEventDriver", "Asou.InMemoryEventDriver\Asou.InMemoryEventDriver.csproj", "{213E36AF-8008-4C91-9275-C6261ED5FC67}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asou.InMemory", "Asou.InMemory\Asou.InMemory.csproj", "{213E36AF-8008-4C91-9275-C6261ED5FC67}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asou", "Asou\Asou.csproj", "{5F4FEB04-78F6-4A67-A399-51B27AD1A7AC}"
 EndProject

@@ -10,7 +10,7 @@ namespace Asou.GraphEngine;
 
 public class GraphProcessInstance : IProcessInstance
 {
-    private readonly IEventDriver _eventDriver;
+    private readonly IEventBus _eventBus;
     private readonly Queue<ExecutionElement> _executionQueue = new();
     private readonly IProcessExecutionLogRepository? _processExecutionLogRepository;
     private readonly IProcessExecutionPersistenceRepository? _processExecutionPersistenceRepository;
@@ -25,6 +25,7 @@ public class GraphProcessInstance : IProcessInstance
         ElementNode startNode,
         ElementNode[] nodes,
         PersistenceType persistenceType,
+        ExecutionFlowType executionFlowType,
         IServiceScope serviceScope)
     {
         Id = id;
@@ -33,10 +34,11 @@ public class GraphProcessInstance : IProcessInstance
         StartNode = startNode;
         Nodes = nodes.ToDictionary(k => k.Id);
         PersistenceType = persistenceType;
+        ExecutionFlowType = executionFlowType;
         _processExecutionLogRepository = serviceScope.ServiceProvider.GetService<IProcessExecutionLogRepository>();
         _processExecutionPersistenceRepository =
             serviceScope.ServiceProvider.GetService<IProcessExecutionPersistenceRepository>();
-        _eventDriver = serviceScope.ServiceProvider.GetRequiredService<IEventDriver>();
+        _eventBus = serviceScope.ServiceProvider.GetRequiredService<IEventBus>();
     }
 
     public Guid ProcessId => ProcessContract.ProcessContractId;
@@ -44,7 +46,7 @@ public class GraphProcessInstance : IProcessInstance
     public ElementNode StartNode { get; }
     public Dictionary<Guid, ElementNode> Nodes { get; }
     public PersistenceType PersistenceType { get; }
-
+    public ExecutionFlowType ExecutionFlowType { get; }
     public ProcessContract ProcessContract { get; }
 
     public Guid Id { get; init; }
@@ -85,7 +87,7 @@ public class GraphProcessInstance : IProcessInstance
             }
 
             // Unsubscribe from event subscription
-            await _eventDriver.CancelSubscriptionAsync(subscription.Id, cancellationToken);
+            await _eventBus.CancelSubscriptionAsync(subscription.Id, cancellationToken);
 
             // Decrease counter to handle correct process stop
             _asynchronousResumeCount--;
@@ -174,17 +176,22 @@ public class GraphProcessInstance : IProcessInstance
         {
             // Get subscriptions from element
             var subscriptions = await ProcessRuntime.ConfigureAsynchronousResumeAsync(node.Id, cancellationToken);
-            var isShouldBreak = false;
+            var subscribed = false;
             foreach (var subscription in subscriptions)
             {
-                await _eventDriver.SubscribeAsync(Id, threadId, node.Id, subscription, cancellationToken);
-                isShouldBreak = true;
+                await _eventBus.SubscribeAsync(Id, threadId, node.Id, subscription, cancellationToken);
+                subscribed = true;
             }
 
-            // Break execution if collection isn't empty subscriptions
-            // Continue if subscription collection is empty
+            if (!subscribed)
+            {
+                // Break execution if no subscriptions
+                // TODO: Log warning
+                return ExecutionStatuses.Break;
+            }
         }
 
+        // TODO: Reduce code complexity: Remove GetNextState method and write direct instructions here
         return GetNextState(node, state);
     }
 
@@ -192,12 +199,11 @@ public class GraphProcessInstance : IProcessInstance
     {
         return state switch
         {
-            ExecutionStatuses.Execute => node.UseAfterExecution
-                ? ExecutionStatuses.AfterExecution
-                : ExecutionStatuses.Exit,
-            ExecutionStatuses.AfterExecution => node.UseAsynchronousResume
-                ? ExecutionStatuses.ConfigureAsynchronousResume
-                : ExecutionStatuses.Exit,
+            ExecutionStatuses.Execute when node.UseAfterExecution => ExecutionStatuses.AfterExecution,
+            ExecutionStatuses.Execute when !node.UseAfterExecution => ExecutionStatuses.Exit,
+            ExecutionStatuses.AfterExecution when node.UseAsynchronousResume => ExecutionStatuses
+                .ConfigureAsynchronousResume,
+            ExecutionStatuses.AfterExecution when !node.UseAsynchronousResume => ExecutionStatuses.Exit,
             ExecutionStatuses.ConfigureAsynchronousResume => ExecutionStatuses.Break,
             _ => ExecutionStatuses.Exit
         };
@@ -214,6 +220,12 @@ public class GraphProcessInstance : IProcessInstance
                     // If nothing to resume, process should to stop execution
                 {
                     break;
+                }
+
+                // TODO: If process execution flow type is asynchronous, save state and stop execution to continue after event fired
+                if (ExecutionFlowType == ExecutionFlowType.Asynchronous)
+                {
+                    return;
                 }
 
                 // Wait new queue elements with TaskCompletionSource signal

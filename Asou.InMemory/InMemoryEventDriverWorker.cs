@@ -2,7 +2,7 @@ using Asou.Abstractions;
 using Asou.Abstractions.Events;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Asou.InMemoryEventDriver;
+namespace Asou.InMemory;
 
 public class InMemoryEventDriverWorker : IInitializeHook, IDisposable
 {

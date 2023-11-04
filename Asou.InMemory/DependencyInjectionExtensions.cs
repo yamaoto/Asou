@@ -1,6 +1,7 @@
 using Asou.Abstractions;
+using Asou.Abstractions.Distributed;
 using Asou.Abstractions.Events;
-using Asou.InMemoryEventDriver;
+using Asou.InMemory;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 // ReSharper disable once CheckNamespace
@@ -13,10 +14,11 @@ public static class DependencyInjectionExtensions
     /// </summary>
     /// <param name="services"></param>
     /// <returns></returns>
-    public static IServiceCollection RegisterAsouInMemoryEventDriver(this IServiceCollection services)
+    public static IServiceCollection RegisterAsouInMemory(this IServiceCollection services)
     {
         services.TryAddSingleton<InMemoryEventDriverQueue>();
-        services.TryAddTransient<IEventDriver, InMemoryEventDriver>();
+        services.TryAddTransient<IEventBus, InMemoryEventBus>();
+        services.TryAddTransient<ILeaderElectionService, InMemoryLeaderElection>();
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IInitializeHook, InMemoryEventDriverWorker>());
         return services;
     }

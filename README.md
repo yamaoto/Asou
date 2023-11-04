@@ -130,6 +130,10 @@ Features / milestones
 - [x]  Parameter binding
 - [x]  Event subsystem and asynchronous resume support
 - [x]  Process execution and data persistence on restart or failure
+- [ ]  Reduce code complexity and rewrite proof of concept code (like Graph engine)
+- [ ]  Validate running app in horizontal scaling environment (another instance of app can take event and resume
+  process)
+- [ ]  Source generator for step parameter binding
 - [ ]  BPMN flow designer
 - [ ]  BPMN engine. Extend Graph base engine to export BPMN flow to graph contract.
 - [ ]  ContextCall bindings

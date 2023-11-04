@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+using Asou.Abstractions.Container;
 using Asou.Abstractions.Process.Contract;
 using Asou.Abstractions.Process.Execution;
 using Asou.Abstractions.Process.Instance;
@@ -21,22 +21,50 @@ public class GetProcessesForResumeRequest
         _processExecutionPersistenceRepository = processExecutionPersistenceRepository;
     }
 
-    public Task ActivateAsync(CancellationToken cancellationToken = default)
+    /// <summary>
+    ///     Prepare data for resuming process
+    /// </summary>
+    /// <param name="processInstanceId"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<ResumeProcessRecord?> GetProcessToResumeAsync(Guid processInstanceId,
+        CancellationToken cancellationToken = default)
     {
-        throw new NotSupportedException();
+        var instance = await _processInstanceRepository.GetInstanceAsync(processInstanceId, cancellationToken);
+        if (instance == null)
+        {
+            return null;
+        }
+
+        var (processContract, parameters) = await PrepareInstanceDataAsync(cancellationToken, instance);
+        return new ResumeProcessRecord(instance, processContract, parameters);
     }
 
-    public async IAsyncEnumerable<ResumeProcessRecord> GetAsyncEnumerable(
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    /// <summary>
+    ///     Prepare data for resuming processes
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<IEnumerable<ProcessInstanceModel>> GetAsyncEnumerable(
+        CancellationToken cancellationToken = default)
     {
         var instances = await _processInstanceRepository.GetRunningInstancesAsync(cancellationToken);
-        foreach (var instance in instances)
-        {
-            var processContract = await _processContractRepository.GetProcessContractAsync(instance.ProcessContractId,
-                instance.ProcessVersionId, instance.Version);
-            var parameters =
-                await _processExecutionPersistenceRepository.GetProcessParametersAsync(instance.Id, cancellationToken);
-            yield return new ResumeProcessRecord(instance, processContract, parameters);
-        }
+        return instances;
+    }
+
+    /// <summary>
+    ///     Fill process instance with data from database.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <param name="instance"></param>
+    /// <returns></returns>
+    private async Task<(ProcessContract? processContract, Dictionary<string, ValueContainer> parameters)>
+        PrepareInstanceDataAsync(CancellationToken cancellationToken, ProcessInstanceModel instance)
+    {
+        var processContract = await _processContractRepository.GetProcessContractAsync(instance.ProcessContractId,
+            instance.ProcessVersionId, instance.Version);
+        var parameters =
+            await _processExecutionPersistenceRepository.GetProcessParametersAsync(instance.Id, cancellationToken);
+        return (processContract, parameters);
     }
 }

@@ -55,4 +55,12 @@ public class ProcessInstanceEfCoreRepository : IProcessInstanceRepository
             .ToListAsync(cancellationToken);
         return processInstances;
     }
+
+    public async Task<ProcessInstanceModel?> GetInstanceAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var processInstance = await _processInstances
+            .AsNoTracking()
+            .FirstOrDefaultAsync(f => f.Id == id, cancellationToken);
+        return processInstance;
+    }
 }

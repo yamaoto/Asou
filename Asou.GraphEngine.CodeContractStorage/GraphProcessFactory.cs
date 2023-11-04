@@ -27,7 +27,7 @@ public class GraphProcessFactory : IGraphProcessFactory
     }
 
     public Task<IProcessInstance> CreateProcessInstance(Guid processInstanceId, ProcessContract processContract,
-        ProcessParameters parameters, CancellationToken cancellationToken = default)
+        ProcessParameters parameters, ExecutionOptions executionOptions, CancellationToken cancellationToken = default)
     {
         var graphProcessContract = _graphProcessContractRepository.GetGraphProcessContract(
             processContract.ProcessContractId,
@@ -64,7 +64,8 @@ public class GraphProcessFactory : IGraphProcessFactory
                 (BaseElement)scope.ServiceProvider.GetRequiredService(elementType)
         };
         var processInstance = new GraphProcessInstance(processInstanceId, graphProcessContract.ProcessContract,
-            processRuntime, startNode, nodes.Values.ToArray(), graphProcessContract.PersistenceType, scope);
+            processRuntime, startNode, nodes.Values.ToArray(), graphProcessContract.PersistenceType,
+            executionOptions.ExecutionFlowType, scope);
 
         foreach (var (parameter, value) in parameters)
         {

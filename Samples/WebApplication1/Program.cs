@@ -84,7 +84,7 @@ app.MapGet("/data",
         return result;
     });
 app.MapPost("/EmitEvent",
-    async (HttpRequest req, IEventDriver eventDriver, CancellationToken cancellationToken) =>
+    async (HttpRequest req, IEventBus eventDriver, CancellationToken cancellationToken) =>
     {
         if (!req.HasFormContentType)
         {
@@ -98,7 +98,7 @@ app.MapPost("/EmitEvent",
             form["EventType"]!,
             form["EventSubject"]!,
             DateTime.UtcNow, null);
-        await eventDriver.PublishAsync(eventRepresentation, cancellationToken);
+        await eventDriver.SendAddressedAsync(eventDriver.CurrentNode, eventRepresentation, cancellationToken);
         return Results.Ok(new { Results = "OK" });
     });
 app.Run();

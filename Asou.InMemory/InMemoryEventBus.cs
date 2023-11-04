@@ -1,19 +1,32 @@
 using Asou.Abstractions.Events;
 
-namespace Asou.InMemoryEventDriver;
+namespace Asou.InMemory;
 
-public class InMemoryEventDriver : IEventDriver
+public class InMemoryEventBus : IEventBus
 {
     private readonly InMemoryEventDriverQueue _queue;
     private readonly ISubscriptionPersistantRepository _subscriptionPersistantRepository;
 
-    public InMemoryEventDriver(
+    public InMemoryEventBus(
         InMemoryEventDriverQueue queue,
         ISubscriptionPersistantRepository subscriptionPersistantRepository
     )
     {
         _queue = queue;
         _subscriptionPersistantRepository = subscriptionPersistantRepository;
+    }
+
+    public Task SendAddressedAsync(string nodeName, EventRepresentation eventRepresentation,
+        CancellationToken cancellationToken = default)
+    {
+        _queue.Enqueue(eventRepresentation);
+        return Task.CompletedTask;
+    }
+
+    public Task SendAsync(EventRepresentation eventRepresentation, CancellationToken cancellationToken = default)
+    {
+        _queue.Enqueue(eventRepresentation);
+        return Task.CompletedTask;
     }
 
     public Task PublishAsync(EventRepresentation eventRepresentation, CancellationToken cancellationToken = default)
@@ -37,4 +50,6 @@ public class InMemoryEventDriver : IEventDriver
     {
         await _subscriptionPersistantRepository.DisableSubscriptionAsync(id, cancellationToken);
     }
+
+    public string CurrentNode => "InMemory";
 }

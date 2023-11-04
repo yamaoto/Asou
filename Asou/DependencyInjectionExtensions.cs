@@ -15,8 +15,8 @@ public static class DependencyInjectionExtensions
         // Register ASOU Graph engine
         services.RegisterAsouGraphEngine();
 
-        // Register ASOU InMemory event driver
-        services.RegisterAsouInMemoryEventDriver();
+        // Register ASOU in-memory & singlenode mode
+        services.RegisterAsouInMemory();
 
         // Use EF Core persistence provider
         services.RegisterAsouEfCorePersistence<TDbContext>();

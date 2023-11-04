@@ -23,7 +23,7 @@
     <ProjectReference Include="..\Asou.EfCore\Asou.EfCore.csproj"/>
     <ProjectReference Include="..\Asou.GraphEngine.CodeContractStorage\Asou.GraphEngine.CodeContractStorage.csproj"/>
     <ProjectReference Include="..\Asou.GraphEngine\Asou.GraphEngine.csproj"/>
-    <ProjectReference Include="..\Asou.InMemoryEventDriver\Asou.InMemoryEventDriver.csproj"/>
+    <ProjectReference Include="..\Asou.InMemory\Asou.InMemory.csproj"/>
   </ItemGroup>
 
 </Project>

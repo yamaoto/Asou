@@ -20,10 +20,11 @@ public class GraphProcessExecutionDriver : IProcessExecutionDriver
     }
 
     public async Task<IProcessInstance> CreateInstanceAsync(ProcessContract processContract, Guid processInstanceId,
-        ProcessParameters parameters, CancellationToken cancellationToken = default)
+        ProcessParameters parameters, ExecutionOptions executionOptions, CancellationToken cancellationToken = default)
     {
         var processInstance =
             await _processFactory.CreateProcessInstance(processInstanceId, processContract, parameters,
+                executionOptions,
                 cancellationToken);
         return processInstance;
     }
