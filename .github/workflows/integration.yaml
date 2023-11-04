@@ -24,8 +24,8 @@ jobs:
       - name: Test
         run: dotnet test --no-build --verbosity normal
       - name: Pack
-        run: dotnet pack --configuration Debug  --version-suffix dev-${{ github.run_number }} --output ./packages
+        run: dotnet pack --configuration Debug --version-suffix dev-${{ github.run_number }} --output ./packages
       - name: Configure NuGet source
-        run: dotnet nuget add source --username yamaoto --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/yamaoto/index.json"
+        run: dotnet nuget add source --username yamaoto --password ${{ secrets.NUGET_PACKAGE_TOKEN  }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/yamaoto/index.json"
       - name: Push NuGet packages
         run: dotnet nuget push "./packages/*.nupkg" --source "github"
