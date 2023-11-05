@@ -87,7 +87,7 @@ public class GraphProcessRegistrationValidation
 
     [Theory]
     [InlineData(10, 5, 50)]
-    public void IsValidCase2Dynamic(int startNodes, int depth, int count)
+    public void IsValidCase2Dynamic(int startElements, int depth, int count)
     {
         // Arrange
         var validator = new GraphProcessRegistration(new Mock<IGraphProcessContractRepository>().Object,
@@ -95,7 +95,7 @@ public class GraphProcessRegistrationValidation
         var graph = GraphProcessContract.Create(Guid.NewGuid(), Guid.NewGuid(), 1, "test",
             new NullLogger<GraphProcessContract>());
 
-        for (var i = 0; i < startNodes; i++)
+        for (var i = 0; i < startElements; i++)
         {
             var current = $"Start{i}";
             graph.StartFrom<TestElement>(current);
@@ -120,7 +120,7 @@ public class GraphProcessRegistrationValidation
 
     [Theory]
     [InlineData(10, 5, 50)]
-    public void IsInvalidCase2Dynamic(int startNodes, int depth, int count)
+    public void IsInvalidCase2Dynamic(int startElements, int depth, int count)
     {
         // Arrange
         var validator = new GraphProcessRegistration(new Mock<IGraphProcessContractRepository>().Object,
@@ -128,7 +128,7 @@ public class GraphProcessRegistrationValidation
         var graph = GraphProcessContract.Create(Guid.NewGuid(), Guid.NewGuid(), 1, "test",
             new NullLogger<GraphProcessContract>());
 
-        for (var i = 0; i < startNodes; i++)
+        for (var i = 0; i < startElements; i++)
         {
             var current = $"Start{i}";
             graph.StartFrom<TestElement>(current);

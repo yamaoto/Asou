@@ -26,12 +26,20 @@ public class ResumeProcessesOnStartup
             return;
         }
 
-        var processesToResume = await _getProcessesForResumeRequest.GetAsyncEnumerable(cancellationToken);
-        foreach (var instance in processesToResume)
+        try
         {
-            var payload = new EventRepresentation(Guid.NewGuid().ToString(), "Asou", "ResumeProcess",
-                instance.Id.ToString(), DateTime.UtcNow, null);
-            await _eventBus.PublishAsync(payload, cancellationToken);
+            var processesToResume = await _getProcessesForResumeRequest.GetAsyncEnumerable(cancellationToken);
+            // TODO: Set process state to "Resuming" for preventing double resume
+            foreach (var instance in processesToResume)
+            {
+                var payload = new EventRepresentation(Guid.NewGuid().ToString(), "Asou", "ResumeProcess",
+                    instance.Id.ToString(), DateTime.UtcNow, null);
+                await _eventBus.PublishAsync(payload, cancellationToken);
+            }
+        }
+        finally
+        {
+            await _leaderElectionService.ReleaseLeadershipAsync(cancellationToken);
         }
     }
 }

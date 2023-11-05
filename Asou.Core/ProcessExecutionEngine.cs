@@ -148,9 +148,7 @@ public class ProcessExecutionEngine
         catch (Exception e)
         {
             state = ProcessInstanceState.Error;
-            // TODO: Provide error information to process instance
-            _logger.LogError(e, "Process {ProcessContractName} ID {ProcessInstanceId} thrown error",
-                instance.ProcessContract.Name, instance.Id);
+            _logger.LogError(e, "Process instance {ProcessInstanceId} execution error", instance.Id);
             throw;
         }
         finally
@@ -172,7 +170,9 @@ public class ProcessExecutionEngine
             await getProcessesForResumeRequest.Handler.GetProcessToResumeAsync(processInstanceId, cancellationToken);
         if (resumeRecord?.ProcessContract == null)
         {
-            // TODO: Log warn event
+            _logger.LogWarning(
+                "ResumeExecutionAsync: Process instance {ProcessInstanceId} not found or not found corresponding process contract",
+                processInstanceId);
             return;
         }
 
@@ -225,7 +225,9 @@ public class ProcessExecutionEngine
                     cancellationToken);
             if (resumeRecord?.ProcessContract == null)
             {
-                // TODO: Log warn event
+                _logger.LogWarning(
+                    "HandleEventAsync: Process instance {ProcessInstanceId} not found or not found corresponding process contract",
+                    subscription.ProcessInstanceId);
                 return;
             }
 

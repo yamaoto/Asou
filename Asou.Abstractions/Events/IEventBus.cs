@@ -2,8 +2,6 @@ namespace Asou.Abstractions.Events;
 
 /// <summary>
 ///     Event driver for publishing and subscribing to events.
-///     TODO: Split into IEventBus and IMessagingService, where IMessagingService will expose low level messaging/queue API
-///     and IEventBus will work on top of it.
 /// </summary>
 public interface IEventBus
 {

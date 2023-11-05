@@ -1,6 +1,7 @@
 using Asou.Abstractions;
 using Asou.Abstractions.Distributed;
 using Asou.Abstractions.Events;
+using Asou.Abstractions.Messaging;
 using Asou.InMemory;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -16,10 +17,11 @@ public static class DependencyInjectionExtensions
     /// <returns></returns>
     public static IServiceCollection RegisterAsouInMemory(this IServiceCollection services)
     {
-        services.TryAddSingleton<InMemoryEventDriverQueue>();
+        services.TryAddSingleton<InMemoryMessageQueue>();
         services.TryAddTransient<IEventBus, InMemoryEventBus>();
+        services.TryAddTransient<IMessagingService, MessagingService>();
         services.TryAddTransient<ILeaderElectionService, InMemoryLeaderElection>();
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<IInitializeHook, InMemoryEventDriverWorker>());
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IInitializeHook, InMemoryMessagingWorker>());
         return services;
     }
 }

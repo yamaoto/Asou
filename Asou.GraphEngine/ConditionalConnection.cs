@@ -1,7 +1,7 @@
 namespace Asou.GraphEngine;
 
-public class ConditionalConnection : IElementNodeConnection
+public class ConditionalConnection : IGraphElementConnection
 {
     public required IsCanNavigateDelegate IsCanNavigate { get; init; }
-    public required ElementNode To { get; init; }
+    public required GraphElement To { get; init; }
 }

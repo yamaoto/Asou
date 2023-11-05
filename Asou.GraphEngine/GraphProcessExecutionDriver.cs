@@ -81,7 +81,7 @@ public class GraphProcessExecutionDriver : IProcessExecutionDriver
             await task;
             _logger.LogDebug("Process execution successfully finished. ProcessInstanceId: {ProcessInstanceId}",
                 instance.Id);
-            return instance.ProcessRuntime.Parameters;
+            return executionOptions.RunInBackground ? null : instance.ProcessRuntime.Parameters;
         }
         catch (Exception exception)
         {

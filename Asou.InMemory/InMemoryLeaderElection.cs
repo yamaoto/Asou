@@ -16,4 +16,9 @@ public class InMemoryLeaderElection : ILeaderElectionService
     {
         return Task.FromResult(_eventBus.CurrentNode);
     }
+
+    public Task ReleaseLeadershipAsync(CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
 }

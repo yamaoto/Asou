@@ -2,13 +2,13 @@ using System.Diagnostics;
 
 namespace Asou.GraphEngine;
 
-[DebuggerDisplay("ElementNode = {DisplayName}")]
-public sealed class ElementNode
+[DebuggerDisplay("GraphElement = {DisplayName}")]
+public sealed class GraphElement
 {
     public Guid Id { get; init; }
     public required Type ElementType { get; init; }
     public required string DisplayName { get; init; }
-    public required List<IElementNodeConnection> Connections { get; init; }
+    public required List<IGraphElementConnection> Connections { get; init; }
     public required List<ParameterPersistenceInfo> Parameters { get; init; }
 
     public required bool IsInclusiveGate { get; init; }

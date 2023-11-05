@@ -131,6 +131,7 @@ Features / milestones
 - [x]  Event subsystem and asynchronous resume support
 - [x]  Process execution and data persistence on restart or failure
 - [ ]  Reduce code complexity and rewrite proof of concept code (like Graph engine)
+- [x] Rename graph node to process element
 - [ ]  Validate running app in horizontal scaling environment (another instance of app can take event and resume
   process)
 - [ ]  Source generator for step parameter binding
