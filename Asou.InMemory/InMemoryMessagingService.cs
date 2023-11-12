@@ -2,12 +2,12 @@ using Asou.Abstractions.Messaging;
 
 namespace Asou.InMemory;
 
-public class MessagingService : IMessagingService
+public class InMemoryMessagingService : IMessagingService
 {
     private static readonly object _stubObject = new();
     private readonly InMemoryMessageQueue _queue;
 
-    public MessagingService(InMemoryMessageQueue queue)
+    public InMemoryMessagingService(InMemoryMessageQueue queue)
     {
         _queue = queue;
         CurrentNode = "InMemory";
@@ -22,7 +22,7 @@ public class MessagingService : IMessagingService
         return Task.CompletedTask;
     }
 
-    public Task<object> SubscribeAsync(string queue, CancellationToken cancellationToken = default)
+    public Task<object> SubscribeAsync(string queue, Type messageType, CancellationToken cancellationToken = default)
     {
         return Task.FromResult(_stubObject);
     }

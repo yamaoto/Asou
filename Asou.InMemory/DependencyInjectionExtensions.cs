@@ -19,7 +19,7 @@ public static class DependencyInjectionExtensions
     {
         services.TryAddSingleton<InMemoryMessageQueue>();
         services.TryAddTransient<IEventBus, InMemoryEventBus>();
-        services.TryAddTransient<IMessagingService, MessagingService>();
+        services.TryAddTransient<IMessagingService, InMemoryMessagingService>();
         services.TryAddTransient<ILeaderElectionService, InMemoryLeaderElection>();
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IInitializeHook, InMemoryMessagingWorker>());
         return services;

@@ -53,7 +53,8 @@ public class InMemoryEventBus : IEventBus
         }
         else
         {
-            var messageSubscription = await _messagingService.SubscribeAsync(queue, cancellationToken);
+            var messageSubscription =
+                await _messagingService.SubscribeAsync(queue, typeof(EventRepresentation), cancellationToken);
             _queueSubscriptions.Add(queue, (messageSubscription, 1));
         }
 

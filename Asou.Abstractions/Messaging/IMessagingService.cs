@@ -18,11 +18,12 @@ public interface IMessagingService
     ///     Subscribe to a queue
     /// </summary>
     /// <param name="queue"></param>
+    /// <param name="messageType"></param>
     /// <param name="cancellationToken"></param>
     /// <returns>
     ///     Subscription object from messaging system provider
     /// </returns>
-    Task<object> SubscribeAsync(string queue,
+    Task<object> SubscribeAsync(string queue, Type messageType,
         CancellationToken cancellationToken = default);
 
     /// <summary>
