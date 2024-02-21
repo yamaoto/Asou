@@ -10,6 +10,7 @@ public interface IProcessInstance
     public ProcessContract ProcessContract { get; }
     public Guid Id { get; }
     public PersistenceType PersistenceType { get; }
+    public ExecutionFlowType ExecutionFlowType { get; }
 
     Task HandleSubscriptionEventAsync(EventSubscriptionModel subscription, EventRepresentation eventRepresentation,
         CancellationToken cancellationToken = default);

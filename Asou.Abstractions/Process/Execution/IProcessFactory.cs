@@ -6,5 +6,5 @@ namespace Asou.Abstractions.Process.Execution;
 public interface IProcessFactory
 {
     public Task<IProcessInstance> CreateProcessInstance(Guid processInstanceId, ProcessContract processContract,
-        ProcessParameters parameters, CancellationToken cancellationToken = default);
+        ProcessParameters parameters, ExecutionOptions executionOptions, CancellationToken cancellationToken = default);
 }

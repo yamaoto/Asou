@@ -26,12 +26,13 @@ public class GraphProcessRegistration : IGraphProcessRegistration
         {
             result = ValidateGraph(graphProcessContract, throwError);
         }
+
         // Prepare element parameters getter and setter delegates
-        foreach (var (_, node) in graphProcessContract.Nodes)
+        foreach (var (_, element) in graphProcessContract.Elements)
         {
-            foreach (var parameter in node.Parameters)
+            foreach (var parameter in element.Parameters)
             {
-                _parameterDelegateFactory.CreateDelegates(node.ElementType, parameter.Name);
+                _parameterDelegateFactory.CreateDelegates(element.ElementType, parameter.Name);
             }
         }
 
@@ -41,15 +42,15 @@ public class GraphProcessRegistration : IGraphProcessRegistration
 
     public bool ValidateGraph(GraphProcessContract graphProcessContract, bool throwError)
     {
-        // Using quick-union algorithm with path compression (depth of any node is almost about 1 and pointing directly to the root)
+        // Using quick-union algorithm with path compression (depth of any element is almost about 1 and pointing directly to the root)
         // https://en.wikipedia.org/wiki/Disjoint-set_data_structure
-        var ids = new int[graphProcessContract.Nodes.Count];
-        var map = new Dictionary<Guid, int>(graphProcessContract.Nodes.Count);
+        var ids = new int[graphProcessContract.Elements.Count];
+        var map = new Dictionary<Guid, int>(graphProcessContract.Elements.Count);
         for (var i = 0; i < ids.Length; i++)
         {
             ids[i] = i;
-            var key = graphProcessContract.Nodes.Keys.ElementAt(i);
-            map[graphProcessContract.Nodes[key].Id] = i;
+            var key = graphProcessContract.Elements.Keys.ElementAt(i);
+            map[graphProcessContract.Elements[key].Id] = i;
         }
 
         // optimal initial capacity is 4
@@ -85,13 +86,13 @@ public class GraphProcessRegistration : IGraphProcessRegistration
             }
         }
 
-        // check if all nodes are connected to start points
+        // check if all elements are connected to start points
         var result = true;
         for (var i = 0; i < ids.Length; i++)
         {
             if (!startPoints.Contains(ids[i]))
             {
-                var key = graphProcessContract.Nodes.Keys.ElementAt(i);
+                var key = graphProcessContract.Elements.Keys.ElementAt(i);
                 if (throwError)
                 {
                     throw new Exception("Graph is not connected. Element " + key + " is not connected to start point");
@@ -106,30 +107,30 @@ public class GraphProcessRegistration : IGraphProcessRegistration
         return result;
     }
 
-    private static int GetRoot(int[] ids, int node)
+    private static int GetRoot(int[] ids, int element)
     {
         int root;
-        if (ids[node] == node)
+        if (ids[element] == element)
         {
-            root = node;
+            root = element;
         }
         else
         {
-            root = GetRoot(ids, ids[node]);
-            ids[node] = root;
+            root = GetRoot(ids, ids[element]);
+            ids[element] = root;
         }
 
         return root;
     }
 
-    private static int Union(int[] ids, int parent, int node)
+    private static int Union(int[] ids, int parent, int element)
     {
         if (ids[parent] == parent)
         {
-            return ids[node] > parent ? ids[node] = parent : ids[parent] = node;
+            return ids[element] > parent ? ids[element] = parent : ids[parent] = element;
         }
 
-        var newParent = Union(ids, ids[parent], node);
+        var newParent = Union(ids, ids[parent], element);
         return newParent;
     }
 }

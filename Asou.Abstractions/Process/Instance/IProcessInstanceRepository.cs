@@ -9,4 +9,5 @@ public interface IProcessInstanceRepository
     Task<IEnumerable<ProcessInstanceModel>> GetRunningInstancesAsync(CancellationToken cancellationToken = default);
 
     Task<IEnumerable<ProcessInstanceModel>> GetAllInstancesAsync(CancellationToken cancellationToken = default);
+    Task<ProcessInstanceModel?> GetInstanceAsync(Guid id, CancellationToken cancellationToken = default);
 }

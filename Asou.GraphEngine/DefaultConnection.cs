@@ -1,6 +1,6 @@
 ﻿namespace Asou.GraphEngine;
 
-public class DefaultConnection : IElementNodeConnection
+public class DefaultConnection : IGraphElementConnection
 {
-    public required ElementNode To { get; init; }
+    public required GraphElement To { get; init; }
 }

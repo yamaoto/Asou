@@ -14,23 +14,28 @@ public class ProcessExecutionEngine
     private readonly IProcessExecutionDriver _driver;
     private readonly IEnumerable<IInitializeHook> _initializers;
 
+    private readonly SemaphoreSlim _instanceCreationSemaphore = new(1, 1);
+
     // TODO: Handle instance deletion after execution done in _instances
     private readonly Dictionary<Guid, IProcessInstance> _instances = new();
     private readonly ILogger<ProcessExecutionEngine> _logger;
-    private readonly ScopedCqrsRunner _scopedCqrsRunner;
+    private readonly ScopedActionRunner _scopedActionRunner;
 
     public ProcessExecutionEngine(
         IEnumerable<IInitializeHook> initializers,
         IProcessExecutionDriver driver,
         ILogger<ProcessExecutionEngine> logger,
-        ScopedCqrsRunner scopedCqrsRunner)
+        ScopedActionRunner scopedActionRunner)
     {
         _initializers = initializers;
         _driver = driver;
         _logger = logger;
-        _scopedCqrsRunner = scopedCqrsRunner;
+        _scopedActionRunner = scopedActionRunner;
     }
 
+    /// <summary>
+    ///     Initialize process execution engine in application lifecycle. This method should be called at application startup.
+    /// </summary>
     public async Task InitializeAsync()
     {
         foreach (var initializer in _initializers)
@@ -39,8 +44,8 @@ public class ProcessExecutionEngine
             await initializer.Initialize();
         }
 
-        // Resume execution after restart
-        await ResumeRunningProcessesAsync();
+        // Resume execution for all running processes that are not finished
+        await ScheduleResumeRunningProcessesAsync();
     }
 
     public async Task StopExecutionAsync(CancellationToken cancellationToken)
@@ -49,14 +54,30 @@ public class ProcessExecutionEngine
             .Where(w => w.Value.PersistenceType != PersistenceType.No)
             .Select(s => new StoreProcessParameters(s.Key, s.Value.ProcessRuntime.Parameters.ToValueContainerMap()))
             .ToArray();
-        using var storeProcessParametersCommand = _scopedCqrsRunner.Get<StoreProcessParametersCommand>();
+        using var storeProcessParametersCommand = _scopedActionRunner.Get<StoreProcessParametersCommand>();
         await storeProcessParametersCommand.Handler.ActivateAsync(storeProcessParametersArray, cancellationToken);
     }
 
-    public async Task<ProcessParameters?> CreateAndExecuteAsync(Guid processContractId, ProcessParameters parameters,
+    /// <summary>
+    ///     Create and execute new process instance with the latest active version
+    /// </summary>
+    /// <param name="processContractId">Process contract</param>
+    /// <param name="parameters">Running process parameters</param>
+    /// <param name="executionOptions">Execution parameters</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>
+    ///     There tow scenarios:
+    ///     1. When <see cref="ExecutionOptions.ExecutionFlowType" /> is <see cref="ExecutionFlowType.Synchronous" /> and
+    ///     <see cref="ExecutionOptions.RunInBackground" /> is set to false, method will return
+    ///     <see cref="ProcessParameters" />
+    ///     when process instance is finished
+    ///     2. Otherwise, method will return null and process instance will be executed in background thread.
+    /// </returns>
+    public async Task<ProcessParameters?> CreateAndExecuteAsync(Guid processContractId,
+        ProcessParameters? parameters = null,
         ExecutionOptions? executionOptions = null, CancellationToken cancellationToken = default)
     {
-        using var getProcessContractRequest = _scopedCqrsRunner.Get<GetProcessContractRequest>();
+        using var getProcessContractRequest = _scopedActionRunner.Get<GetProcessContractRequest>();
         var processContract =
             await getProcessContractRequest.Handler.RequestAsync(processContractId, cancellationToken);
 
@@ -65,17 +86,32 @@ public class ProcessExecutionEngine
             throw new Exception("processContract not exists");
         }
 
-        return await ExecuteAsync(processContract, Guid.NewGuid(), parameters,
+        return await ExecuteAsync(processContract, Guid.NewGuid(), parameters ?? new ProcessParameters(),
             executionOptions ?? new ExecutionOptions(), cancellationToken);
     }
 
-    public async Task<ProcessParameters?> CreateAndExecuteAsync(Guid processContractId, Guid processVersionId,
-        int versionNumber,
-        ProcessParameters parameters,
-        ExecutionOptions? executionOptions = null,
+    /// <summary>
+    ///     Create and execute new process instance with specific version
+    /// </summary>
+    /// <param name="processContractId">Process contract</param>
+    /// <param name="processVersionId">Process version</param>
+    /// <param name="versionNumber"></param>
+    /// <param name="parameters">Running process parameters</param>
+    /// <param name="executionOptions">Execution parameters</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>
+    ///     There tow scenarios:
+    ///     1. When <see cref="ExecutionOptions.ExecutionFlowType" /> is <see cref="ExecutionFlowType.Synchronous" /> and
+    ///     <see cref="ExecutionOptions.RunInBackground" /> is set to false, method will return
+    ///     <see cref="ProcessParameters" />
+    ///     when process instance is finished
+    ///     2. Otherwise, method will return null and process instance will be executed in background thread.
+    /// </returns>
+    public async Task<ProcessParameters?> CreateAndExecuteAsync(Guid processContractId, int versionNumber,
+        ProcessParameters? parameters, ExecutionOptions? executionOptions = null,
         CancellationToken cancellationToken = default)
     {
-        using var getProcessContractRequest = _scopedCqrsRunner.Get<GetProcessContractRequest>();
+        using var getProcessContractRequest = _scopedActionRunner.Get<GetProcessContractRequest>();
         var processContract =
             await getProcessContractRequest.Handler.RequestAsync(processContractId, cancellationToken);
 
@@ -84,7 +120,7 @@ public class ProcessExecutionEngine
             throw new Exception("processContract not exists");
         }
 
-        return await ExecuteAsync(processContract, Guid.NewGuid(), parameters,
+        return await ExecuteAsync(processContract, Guid.NewGuid(), parameters ?? new ProcessParameters(),
             executionOptions ?? new ExecutionOptions(), cancellationToken);
     }
 
@@ -92,13 +128,14 @@ public class ProcessExecutionEngine
         ProcessParameters parameters, ExecutionOptions executionOptions, CancellationToken cancellationToken = default)
     {
         var instance =
-            await _driver.CreateInstanceAsync(processContract, processInstanceId, parameters, cancellationToken);
+            await _driver.CreateInstanceAsync(processContract, processInstanceId, parameters, executionOptions,
+                cancellationToken);
         _instances[instance.Id] = instance;
         var state = ProcessInstanceState.New;
-        using var insertProcessInstanceStateCommand = _scopedCqrsRunner.Get<InsertProcessInstanceStateCommand>();
+        using var insertProcessInstanceStateCommand = _scopedActionRunner.Get<InsertProcessInstanceStateCommand>();
         await insertProcessInstanceStateCommand.Handler.ActivateAsync(instance, state,
             cancellationToken);
-        using var updateProcessInstanceStateCommand = _scopedCqrsRunner.Get<UpdateProcessInstanceStateCommand>();
+        using var updateProcessInstanceStateCommand = _scopedActionRunner.Get<UpdateProcessInstanceStateCommand>();
         try
         {
             state = ProcessInstanceState.Running;
@@ -111,9 +148,7 @@ public class ProcessExecutionEngine
         catch (Exception e)
         {
             state = ProcessInstanceState.Error;
-            // TODO: Provide error information to process instance
-            _logger.LogError(e, "Process {ProcessContractName} ID {ProcessInstanceId} thrown error",
-                instance.ProcessContract.Name, instance.Id);
+            _logger.LogError(e, "Process instance {ProcessInstanceId} execution error", instance.Id);
             throw;
         }
         finally
@@ -122,13 +157,39 @@ public class ProcessExecutionEngine
         }
     }
 
+    /// <summary>
+    ///     Resume execution for specific process instance.
+    ///     This method should be called when application at startup scheduled to resume execution for all running processes
+    /// </summary>
+    /// <param name="processInstanceId"></param>
+    /// <param name="cancellationToken"></param>
+    internal async Task ResumeExecutionAsync(Guid processInstanceId, CancellationToken cancellationToken = default)
+    {
+        using var getProcessesForResumeRequest = _scopedActionRunner.Get<GetProcessesForResumeRequest>();
+        var resumeRecord =
+            await getProcessesForResumeRequest.Handler.GetProcessToResumeAsync(processInstanceId, cancellationToken);
+        if (resumeRecord?.ProcessContract == null)
+        {
+            _logger.LogWarning(
+                "ResumeExecutionAsync: Process instance {ProcessInstanceId} not found or not found corresponding process contract",
+                processInstanceId);
+            return;
+        }
+
+        await ResumeExecutionAsync(resumeRecord.ProcessContract, processInstanceId,
+            new ProcessParameters(resumeRecord.Parameters),
+            cancellationToken);
+    }
+
     private async Task ResumeExecutionAsync(ProcessContract processContract, Guid processInstanceId,
         ProcessParameters parameters, CancellationToken cancellationToken = default)
     {
         var instance =
-            await _driver.CreateInstanceAsync(processContract, processInstanceId, parameters, cancellationToken);
+            await _driver.CreateInstanceAsync(processContract, processInstanceId, parameters, new ExecutionOptions(),
+                cancellationToken);
         _instances[instance.Id] = instance;
-        using var updateProcessInstanceStateCommand = _scopedCqrsRunner.Get<UpdateProcessInstanceStateCommand>();
+        using var updateProcessInstanceStateCommand = _scopedActionRunner.Get<UpdateProcessInstanceStateCommand>();
+
         // Override any other state
         await updateProcessInstanceStateCommand.Handler.ActivateAsync(instance.Id, ProcessInstanceState.Running,
             cancellationToken);
@@ -141,30 +202,57 @@ public class ProcessExecutionEngine
         CancellationToken cancellationToken = default)
     {
         // Check if instance is active
-        if (!_instances.TryGetValue(subscription.ProcessInstanceId, out var instance))
+        if (_instances.TryGetValue(subscription.ProcessInstanceId, out var instance))
         {
-            // TODO: Resume instance if not present
-            throw new NotImplementedException();
+            await instance.HandleSubscriptionEventAsync(subscription, eventRepresentation, cancellationToken);
+            return;
+        }
+
+        // lock to prevent duplicate instance creation
+        await _instanceCreationSemaphore.WaitAsync(cancellationToken);
+        try
+        {
+            // Check again in case another thread created the instance while waiting
+            if (_instances.TryGetValue(subscription.ProcessInstanceId, out instance))
+            {
+                await instance.HandleSubscriptionEventAsync(subscription, eventRepresentation, cancellationToken);
+                return;
+            }
+
+            using var getProcessesForResumeRequest = _scopedActionRunner.Get<GetProcessesForResumeRequest>();
+            var resumeRecord =
+                await getProcessesForResumeRequest.Handler.GetProcessToResumeAsync(subscription.ProcessInstanceId,
+                    cancellationToken);
+            if (resumeRecord?.ProcessContract == null)
+            {
+                _logger.LogWarning(
+                    "HandleEventAsync: Process instance {ProcessInstanceId} not found or not found corresponding process contract",
+                    subscription.ProcessInstanceId);
+                return;
+            }
+
+            instance =
+                await _driver.CreateInstanceAsync(resumeRecord.ProcessContract, resumeRecord.ProcessInstance.Id,
+                    new ProcessParameters(resumeRecord.Parameters), new ExecutionOptions(),
+                    cancellationToken);
+            _instances[instance.Id] = instance;
+        }
+        finally
+        {
+            _instanceCreationSemaphore.Release();
         }
 
         await instance.HandleSubscriptionEventAsync(subscription, eventRepresentation, cancellationToken);
     }
 
-    private async Task ResumeRunningProcessesAsync(CancellationToken cancellationToken = default)
+    /// <summary>
+    ///     At application startup, resume all running processes that are not finished by scheduling run with message queue
+    ///     to prevent duplicate running process instances in horizontal scaling environment
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    private async Task ScheduleResumeRunningProcessesAsync(CancellationToken cancellationToken = default)
     {
-        using var getProcessesForResumeRequest = _scopedCqrsRunner.Get<GetProcessesForResumeRequest>();
-        var resumeProcessRecords = getProcessesForResumeRequest.Handler.GetAsyncEnumerable(cancellationToken);
-        await foreach (var (instance, processContract, parameters) in resumeProcessRecords.WithCancellation(
-                           cancellationToken))
-        {
-            if (processContract == null)
-            {
-                // TODO: Log warn event
-                continue;
-            }
-
-            await ResumeExecutionAsync(processContract, instance.Id, new ProcessParameters(parameters),
-                cancellationToken);
-        }
+        using var resumeProcessOnStartup = _scopedActionRunner.Get<ResumeProcessesOnStartup>();
+        await resumeProcessOnStartup.Handler.ActivateAsync(cancellationToken);
     }
 }

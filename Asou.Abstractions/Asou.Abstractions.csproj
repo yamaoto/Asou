@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
@@ -12,5 +12,6 @@
     <PackageDescription>ASOU is acronym for Another yet Service Orchestration Utility.</PackageDescription>
     <RepositoryUrl>https://github.com/yamaoto/Asou</RepositoryUrl>
   </PropertyGroup>
+
 
 </Project>

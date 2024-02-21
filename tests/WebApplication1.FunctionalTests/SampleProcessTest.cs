@@ -69,9 +69,9 @@ public class SampleProcessTest : IClassFixture<WebApplicationFactory<Program>>
     private async Task EmitEvent()
     {
         using var scope = _factory.Services.CreateScope();
-        var eventDriver = scope.ServiceProvider.GetRequiredService<IEventDriver>();
+        var eventDriver = scope.ServiceProvider.GetRequiredService<IEventBus>();
         await Task.Delay(500);
-        await eventDriver.PublishAsync(
+        await eventDriver.SendAddressedAsync(eventDriver.CurrentNode,
             new EventRepresentation("test", "test", "MyEventType", "MyEventSubject", DateTime.UtcNow, ""));
     }
 }

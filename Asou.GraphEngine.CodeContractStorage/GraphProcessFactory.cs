@@ -6,28 +6,32 @@ using Asou.Abstractions.Process.Instance;
 using Asou.Core.Process;
 using Asou.Core.Process.Binding;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Asou.GraphEngine.CodeContractStorage;
 
 public class GraphProcessFactory : IGraphProcessFactory
 {
     private readonly IGraphProcessContractRepository _graphProcessContractRepository;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly IParameterDelegateFactory _parameterDelegateFactory;
     private readonly IServiceProvider _serviceProvider;
 
     public GraphProcessFactory(
         IGraphProcessContractRepository graphProcessContractRepository,
         IServiceProvider serviceProvider,
-        IParameterDelegateFactory parameterDelegateFactory
+        IParameterDelegateFactory parameterDelegateFactory,
+        ILoggerFactory loggerFactory
     )
     {
         _graphProcessContractRepository = graphProcessContractRepository;
         _serviceProvider = serviceProvider;
         _parameterDelegateFactory = parameterDelegateFactory;
+        _loggerFactory = loggerFactory;
     }
 
     public Task<IProcessInstance> CreateProcessInstance(Guid processInstanceId, ProcessContract processContract,
-        ProcessParameters parameters, CancellationToken cancellationToken = default)
+        ProcessParameters parameters, ExecutionOptions executionOptions, CancellationToken cancellationToken = default)
     {
         var graphProcessContract = _graphProcessContractRepository.GetGraphProcessContract(
             processContract.ProcessContractId,
@@ -37,22 +41,22 @@ public class GraphProcessFactory : IGraphProcessFactory
             throw new Exception("process is not registered");
         }
 
-        var nodes = graphProcessContract.Nodes.Values.ToDictionary(k => k.Id);
-        ElementNode? startNode = null;
+        var elements = graphProcessContract.Elements.Values.ToDictionary(k => k.Id);
+        GraphElement? startElement = null;
         foreach (var connection in graphProcessContract.Graph)
         {
             if (connection.FromElementId == null)
             {
                 // for start element
-                startNode = nodes[connection.ToElementId];
+                startElement = elements[connection.ToElementId];
             }
             else
             {
-                CreateNodeConnection(connection.FromElementId.Value, nodes, connection);
+                CreateElementConnection(connection.FromElementId.Value, elements, connection);
             }
         }
 
-        if (startNode == null)
+        if (startElement == null)
         {
             throw new Exception("Start element does not exists");
         }
@@ -63,8 +67,10 @@ public class GraphProcessFactory : IGraphProcessFactory
             ComponentFactory = elementType =>
                 (BaseElement)scope.ServiceProvider.GetRequiredService(elementType)
         };
+        var logger = _loggerFactory.CreateLogger<GraphProcessInstance>();
         var processInstance = new GraphProcessInstance(processInstanceId, graphProcessContract.ProcessContract,
-            processRuntime, startNode, nodes.Values.ToArray(), graphProcessContract.PersistenceType, scope);
+            processRuntime, startElement, elements.Values.ToArray(), graphProcessContract.PersistenceType,
+            executionOptions.ExecutionFlowType, scope, logger);
 
         foreach (var (parameter, value) in parameters)
         {
@@ -75,28 +81,28 @@ public class GraphProcessFactory : IGraphProcessFactory
     }
 
 
-    private static void CreateNodeConnection(Guid fromId, Dictionary<Guid, ElementNode> nodes,
+    private static void CreateElementConnection(Guid fromId, Dictionary<Guid, GraphElement> elements,
         ConnectionBuilderInfo connection)
     {
         if (connection.Condition != null)
         {
-            nodes[fromId].Connections.Add(new ConditionalConnection
+            elements[fromId].Connections.Add(new ConditionalConnection
             {
-                To = nodes[connection.ToElementId], IsCanNavigate = connection.Condition
+                To = elements[connection.ToElementId], IsCanNavigate = connection.Condition
             });
         }
         else if (connection.ConditionName != null)
         {
-            nodes[fromId].Connections.Add(new ConditionalConnection
+            elements[fromId].Connections.Add(new ConditionalConnection
             {
-                To = nodes[connection.ToElementId],
+                To = elements[connection.ToElementId],
                 IsCanNavigate = (_, from, _) =>
                     ((IPreconfiguredConditions)from).CheckCondition(connection.ConditionName)
             });
         }
         else
         {
-            nodes[fromId].Connections.Add(new DefaultConnection { To = nodes[connection.ToElementId] });
+            elements[fromId].Connections.Add(new DefaultConnection { To = elements[connection.ToElementId] });
         }
     }
 }

@@ -11,8 +11,8 @@ namespace Asou.GraphEngine.CodeContractStorage;
 public class GraphProcessContract
 {
     private readonly ILogger<GraphProcessContract> _logger;
+    internal readonly Dictionary<string, GraphElement> Elements = new();
     internal readonly List<ConnectionBuilderInfo> Graph = new();
-    internal readonly Dictionary<string, ElementNode> Nodes = new();
 
     private string? _currentElement;
     internal PersistenceType PersistenceType = PersistenceType.Stateful;
@@ -43,8 +43,8 @@ public class GraphProcessContract
 
     public GraphProcessContract StartFrom<T>(string? to = null, Guid? toId = null) where T : BaseElement
     {
-        _currentElement = SetNode<T>(to, toId);
-        Graph.Add(new ConnectionBuilderInfo { ToElementId = Nodes[_currentElement].Id });
+        _currentElement = SetElement<T>(to, toId);
+        Graph.Add(new ConnectionBuilderInfo { ToElementId = Elements[_currentElement].Id });
         return this;
     }
 
@@ -56,10 +56,10 @@ public class GraphProcessContract
         }
 
         var fromVar = _currentElement;
-        _currentElement = SetNode<T>(to, toId);
+        _currentElement = SetElement<T>(to, toId);
         Graph.Add(new ConnectionBuilderInfo
         {
-            FromElementId = Nodes[fromVar].Id, ToElementId = Nodes[_currentElement].Id
+            FromElementId = Elements[fromVar].Id, ToElementId = Elements[_currentElement].Id
         });
         return this;
     }
@@ -69,11 +69,11 @@ public class GraphProcessContract
         where TFrom : BaseElement
         where TTo : BaseElement
     {
-        var fromVar = SetNode<TFrom>(from, fromId);
-        _currentElement = SetNode<TTo>(to, toId);
+        var fromVar = SetElement<TFrom>(from, fromId);
+        _currentElement = SetElement<TTo>(to, toId);
         Graph.Add(new ConnectionBuilderInfo
         {
-            FromElementId = Nodes[fromVar].Id, ToElementId = Nodes[_currentElement].Id
+            FromElementId = Elements[fromVar].Id, ToElementId = Elements[_currentElement].Id
         });
         return this;
     }
@@ -84,12 +84,12 @@ public class GraphProcessContract
         where TFrom : BaseElement, IPreconfiguredConditions
         where TTo : BaseElement
     {
-        var fromVar = SetNode<TFrom>(from, fromId);
-        _currentElement = SetNode<TTo>(to, toId);
+        var fromVar = SetElement<TFrom>(from, fromId);
+        _currentElement = SetElement<TTo>(to, toId);
         Graph.Add(new ConnectionBuilderInfo
         {
-            FromElementId = Nodes[fromVar].Id,
-            ToElementId = Nodes[_currentElement].Id,
+            FromElementId = Elements[fromVar].Id,
+            ToElementId = Elements[_currentElement].Id,
             ConditionName = conditionName
         });
         return this;
@@ -100,12 +100,12 @@ public class GraphProcessContract
         where TFrom : BaseElement, IPreconfiguredConditions
         where TTo : BaseElement
     {
-        var fromVar = SetNode<TFrom>(from, fromId);
-        _currentElement = SetNode<TTo>(to, toId);
+        var fromVar = SetElement<TFrom>(from, fromId);
+        _currentElement = SetElement<TTo>(to, toId);
         Graph.Add(new ConnectionBuilderInfo
         {
-            FromElementId = Nodes[fromVar].Id,
-            ToElementId = Nodes[_currentElement].Id,
+            FromElementId = Elements[fromVar].Id,
+            ToElementId = Elements[_currentElement].Id,
             Condition = Unsafe.As<IsCanNavigateDelegate>(condition)
         });
         return this;
@@ -127,11 +127,11 @@ public class GraphProcessContract
             Setter = Unsafe.As<Action<IProcessInstance, object>?>(setter),
             Type = typeof(TPropertyType)
         };
-        Nodes[_currentElement].Parameters.Add(parameter);
+        Elements[_currentElement].Parameters.Add(parameter);
         return this;
     }
 
-    private string SetNode<T>(string? name = null, Guid? id = null) where T : BaseElement
+    private string SetElement<T>(string? name = null, Guid? id = null) where T : BaseElement
     {
         var nameVar = name ?? typeof(T).Name;
         Guid idVar;
@@ -147,22 +147,22 @@ public class GraphProcessContract
             idVar = id ?? Guid.NewGuid();
         }
 
-        if (!Nodes.TryGetValue(nameVar, out var element))
+        if (!Elements.TryGetValue(nameVar, out var element))
         {
             var type = typeof(T);
-            element = new ElementNode
+            element = new GraphElement
             {
                 Id = idVar,
                 DisplayName = nameVar,
                 ElementType = typeof(T),
                 Parameters = new List<ParameterPersistenceInfo>(),
-                Connections = new List<IElementNodeConnection>(),
+                Connections = new List<IGraphElementConnection>(),
                 // TODO: Set IsInclusiveGate properly
                 IsInclusiveGate = false,
                 UseAsynchronousResume = type.IsAssignableTo(typeof(IAsynchronousResume)),
                 UseAfterExecution = type.IsAssignableTo(typeof(IAfterExecution))
             };
-            Nodes[nameVar] = element;
+            Elements[nameVar] = element;
         }
 
         return nameVar;

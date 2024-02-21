@@ -2,17 +2,17 @@ using Asou.Abstractions;
 using Asou.Abstractions.Events;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Asou.InMemoryEventDriver;
+namespace Asou.InMemory;
 
-public class InMemoryEventDriverWorker : IInitializeHook, IDisposable
+public class InMemoryMessagingWorker : IInitializeHook, IDisposable
 {
     private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private readonly InMemoryEventDriverQueue _queue;
+    private readonly InMemoryMessageQueue _queue;
     private readonly IServiceProvider _serviceProvider;
     private Task? _workerTask;
 
-    public InMemoryEventDriverWorker(
-        InMemoryEventDriverQueue queue,
+    public InMemoryMessagingWorker(
+        InMemoryMessageQueue queue,
         IServiceProvider serviceProvider
     )
     {
@@ -49,7 +49,7 @@ public class InMemoryEventDriverWorker : IInitializeHook, IDisposable
         // loop while cancellation token isn't requested
         while (!_cancellationTokenSource.IsCancellationRequested)
         {
-            EventRepresentation message;
+            QueueMessage message;
             try
             {
                 message = await _queue.DequeueAsync(_cancellationTokenSource.Token);
@@ -62,8 +62,11 @@ public class InMemoryEventDriverWorker : IInitializeHook, IDisposable
 
             using var scope = _serviceProvider.CreateScope();
             var subscriptionManager = scope.ServiceProvider.GetRequiredService<ISubscriptionManager>();
-            // Call event system to check subscriptions and pass event
-            await subscriptionManager.ReceiveEventAsync(message, _cancellationTokenSource.Token);
+            if (message.Message is EventRepresentation eventRepresentation)
+            {
+                // Call event system to check subscriptions and pass event
+                await subscriptionManager.ReceiveEventAsync(eventRepresentation, _cancellationTokenSource.Token);
+            }
         }
     }
 }

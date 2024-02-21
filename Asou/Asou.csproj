@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
@@ -14,8 +14,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0"/>
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="7.0.0"/>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0"/>
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -23,7 +23,7 @@
     <ProjectReference Include="..\Asou.EfCore\Asou.EfCore.csproj"/>
     <ProjectReference Include="..\Asou.GraphEngine.CodeContractStorage\Asou.GraphEngine.CodeContractStorage.csproj"/>
     <ProjectReference Include="..\Asou.GraphEngine\Asou.GraphEngine.csproj"/>
-    <ProjectReference Include="..\Asou.InMemoryEventDriver\Asou.InMemoryEventDriver.csproj"/>
+    <ProjectReference Include="..\Asou.InMemory\Asou.InMemory.csproj"/>
   </ItemGroup>
 
 </Project>

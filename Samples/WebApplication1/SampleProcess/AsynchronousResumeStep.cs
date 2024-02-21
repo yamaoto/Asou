@@ -5,11 +5,11 @@ namespace WebApplication1.SampleProcess;
 
 public class AsynchronousResumeStep : BaseElement, IAfterExecution, IAsynchronousResume
 {
-    private readonly IEventDriver _eventDriver;
+    private readonly IEventBus _eventBus;
 
-    public AsynchronousResumeStep(IEventDriver eventDriver)
+    public AsynchronousResumeStep(IEventBus eventBus)
     {
-        _eventDriver = eventDriver;
+        _eventBus = eventBus;
     }
 
     public Task AfterExecutionAsync(CancellationToken cancellationToken = default)

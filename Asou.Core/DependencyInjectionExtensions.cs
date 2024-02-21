@@ -22,7 +22,7 @@ public static class DependencyInjectionExtensions
         services.TryAddSingleton<IParameterDelegateFactory, ParameterDelegateFactory>();
 
         // Register CQRS runner
-        services.AddTransient<ScopedCqrsRunner>();
+        services.AddTransient<ScopedActionRunner>();
 
         // Register CQRS commands and requests
         services.TryAddScoped<GetProcessesForResumeRequest>();
@@ -30,6 +30,7 @@ public static class DependencyInjectionExtensions
         services.TryAddScoped<StoreProcessParametersCommand>();
         services.TryAddScoped<UpdateProcessInstanceStateCommand>();
         services.TryAddScoped<InsertProcessInstanceStateCommand>();
+        services.TryAddScoped<ResumeProcessesOnStartup>();
 
         return services;
     }

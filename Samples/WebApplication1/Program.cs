@@ -59,9 +59,11 @@ app.MapPost("/SampleProcess",
     {
         var timer = Stopwatch.StartNew();
         // Execute SampleProcess with parameters Parameter1 = "Hello World" and Parameter2 = ""
+        var parameters = new ProcessParameters { { "Parameter1", "Hello World" }, { "Parameter2", "" } };
+        // Execute process synchronously
+        var options = new ExecutionOptions(false, ExecutionFlowType.Synchronous);
         var result = await processExecutionEngine.CreateAndExecuteAsync(new Guid(SampleProcessDefinition.ProcessId),
-            new ProcessParameters { { "Parameter1", "Hello World" }, { "Parameter2", "" } },
-            new ExecutionOptions(false), cancellationToken);
+            parameters, options, cancellationToken);
         timer.Stop();
         result!["ElapsedMilliseconds"] = timer.ElapsedMilliseconds;
         return result;
@@ -84,7 +86,7 @@ app.MapGet("/data",
         return result;
     });
 app.MapPost("/EmitEvent",
-    async (HttpRequest req, IEventDriver eventDriver, CancellationToken cancellationToken) =>
+    async (HttpRequest req, IEventBus eventDriver, CancellationToken cancellationToken) =>
     {
         if (!req.HasFormContentType)
         {
@@ -98,7 +100,7 @@ app.MapPost("/EmitEvent",
             form["EventType"]!,
             form["EventSubject"]!,
             DateTime.UtcNow, null);
-        await eventDriver.PublishAsync(eventRepresentation, cancellationToken);
+        await eventDriver.SendAddressedAsync(eventDriver.CurrentNode, eventRepresentation, cancellationToken);
         return Results.Ok(new { Results = "OK" });
     });
 app.Run();

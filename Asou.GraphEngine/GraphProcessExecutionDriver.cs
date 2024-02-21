@@ -20,10 +20,11 @@ public class GraphProcessExecutionDriver : IProcessExecutionDriver
     }
 
     public async Task<IProcessInstance> CreateInstanceAsync(ProcessContract processContract, Guid processInstanceId,
-        ProcessParameters parameters, CancellationToken cancellationToken = default)
+        ProcessParameters parameters, ExecutionOptions executionOptions, CancellationToken cancellationToken = default)
     {
         var processInstance =
             await _processFactory.CreateProcessInstance(processInstanceId, processContract, parameters,
+                executionOptions,
                 cancellationToken);
         return processInstance;
     }
@@ -80,7 +81,7 @@ public class GraphProcessExecutionDriver : IProcessExecutionDriver
             await task;
             _logger.LogDebug("Process execution successfully finished. ProcessInstanceId: {ProcessInstanceId}",
                 instance.Id);
-            return instance.ProcessRuntime.Parameters;
+            return executionOptions.RunInBackground ? null : instance.ProcessRuntime.Parameters;
         }
         catch (Exception exception)
         {
