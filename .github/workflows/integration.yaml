@@ -30,4 +30,4 @@ jobs:
       - name: Push NuGet packages into GitHub Packages
         run: dotnet nuget push "./packages/*.nupkg" --source "github"
       - name: Push NuGet packages into NuGet.org
-        run: dotnet nuget push "./packages/*.nupkg" --source "https://api.nuget.org/v3/index.json" --api-key ${{ secrets.NUGET_ORG_API_KEY }} --skip-duplicate
+        run: dotnet nuget push "./packages/*.nupkg" --source "https://api.nuget.org/v3/index.json" --api-key ${{ secrets.NUGET_ORG_PACKAGE_TOKEN }} --skip-duplicate
