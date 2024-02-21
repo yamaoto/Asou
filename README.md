@@ -130,10 +130,16 @@ Features / milestones
 - [x]  Parameter binding
 - [x]  Event subsystem and asynchronous resume support
 - [x]  Process execution and data persistence on restart or failure
-- [ ]  Reduce code complexity and rewrite proof of concept code (like Graph engine)
 - [x] Rename graph node to process element
-- [ ]  Validate running app in horizontal scaling environment (another instance of app can take event and resume
+
+* [ ]  Reduce code complexity and rewrite proof of concept code (like Graph engine)
+* [ ]  Validate running app in horizontal scaling environment (another instance of app can take event and resume
   process)
+    * [x] Split IEventBus to IMessagingService, where IMessagingService will expose low level messaging/queue API
+    * [x] Implement InMemory leader election
+    * [ ] Implement Consul leader election
+* [x] Execute processes in async mode and unload when no next node to execute
+* [ ] Tests
 - [ ]  Source generator for step parameter binding
 - [ ]  BPMN flow designer
 - [ ]  BPMN engine. Extend Graph base engine to export BPMN flow to graph contract.
